@@ -10,10 +10,11 @@
  * Dữ liệu (tài khoản, đơn hàng, bài viết) nằm trong file `storage/puni-tea.db` ngay trên máy
  * này — không dùng chung với bản đã đưa lên mạng.
  *
+ * Quên mật khẩu quản trị: chạy kèm --dat-lai-mat-khau để sinh mật khẩu mới.
  * Tùy chọn: --port 3020 (đổi cổng) · --db storage/khac.db (file database khác) · --no-open (không mở trình duyệt)
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { randomBytes, scryptSync } from 'node:crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
@@ -36,6 +37,8 @@ function option(name, fallback) {
 const PORT = option('port', '3010');
 const DB_FILE = option('db', 'storage/puni-tea.db');
 const OPEN_BROWSER = !process.argv.includes('--no-open');
+/** Quên mật khẩu quản trị: chạy kèm cờ này để sinh mật khẩu mới. */
+const RESET_PASSWORD = process.argv.includes('--dat-lai-mat-khau');
 const SITE = `http://localhost:${PORT}`;
 
 /** Web chạy bằng database FILE trên máy này, kể cả khi thư mục có sẵn .env.local trỏ đi nơi khác. */
@@ -163,54 +166,99 @@ function hashPassword(password) {
   return ['scrypt', 16384, 8, 1, salt.toString('hex'), hash.toString('hex')].join('$');
 }
 
-/**
- * Tạo tài khoản quản trị ở lần chạy đầu. Mật khẩu sinh NGẪU NHIÊN cho riêng máy này và ghi ra
- * file TAI-KHOAN-ADMIN.txt — không có mật khẩu mặc định nào nằm trong mã nguồn.
- */
-async function ensureAdmin() {
-  const { createClient } = await import('@libsql/client');
-  const db = createClient({ url: `file:${DB_FILE}` });
-  await db.execute('PRAGMA busy_timeout = 5000');
-
-  const admins = await db.execute("SELECT email FROM users WHERE role = 'admin' LIMIT 1");
-  if (admins.rows.length > 0) {
-    db.close();
-    return { created: false, email: String(admins.rows[0].email) };
-  }
-
-  const password = randomBytes(9).toString('base64url');
-  const existing = await db.execute({
-    sql: 'SELECT id FROM users WHERE email = ?',
-    args: [ADMIN_EMAIL],
+/** Mật khẩu có khớp chuỗi băm đang lưu không (cùng cách kiểm của ứng dụng). */
+function passwordMatches(password, stored) {
+  const [scheme, n, r, p, saltHex, hashHex] = String(stored).split('$');
+  if (scheme !== 'scrypt' || !saltHex || !hashHex) return false;
+  const expected = Buffer.from(hashHex, 'hex');
+  const actual = scryptSync(password, Buffer.from(saltHex, 'hex'), expected.length, {
+    N: Number(n),
+    r: Number(r),
+    p: Number(p),
   });
-  if (existing.rows.length > 0) {
-    await db.execute({
-      sql: "UPDATE users SET role = 'admin', password_hash = ? WHERE email = ?",
-      args: [hashPassword(password), ADMIN_EMAIL],
-    });
-  } else {
-    await db.execute({
-      sql: "INSERT INTO users (email, name, password_hash, role) VALUES (?, ?, ?, 'admin')",
-      args: [ADMIN_EMAIL, ADMIN_NAME, hashPassword(password)],
-    });
-  }
-  db.close();
+  return timingSafeEqual(actual, expected);
+}
 
+function savedPassword() {
+  if (!existsSync(CREDENTIALS_FILE)) return null;
+  return /Mật khẩu\s*:\s*(\S+)/.exec(readFileSync(CREDENTIALS_FILE, 'utf8'))?.[1] ?? null;
+}
+
+function writeCredentials(email, password) {
   writeFileSync(
     CREDENTIALS_FILE,
     [
       'TÀI KHOẢN QUẢN TRỊ — website Puni Tea chạy trên máy này',
       '',
       `Trang đăng nhập : ${SITE}/dang-nhap`,
-      `Email           : ${ADMIN_EMAIL}`,
+      `Email           : ${email}`,
       `Mật khẩu        : ${password}`,
       '',
       'Sau khi đăng nhập: Tài khoản → Quản trị bài viết để viết bài SEO.',
-      'Đổi mật khẩu ở trang Tài khoản. File này chỉ nằm trên máy bạn, đừng gửi cho người khác.',
+      'Nếu bạn đổi mật khẩu trên web thì mật khẩu ghi ở đây không còn dùng được.',
+      'Quên mật khẩu: chạy lại kèm --dat-lai-mat-khau để nhận mật khẩu mới.',
+      'File này chỉ nằm trên máy bạn, đừng gửi cho người khác.',
       '',
     ].join('\n'),
   );
-  return { created: true, email: ADMIN_EMAIL, password };
+}
+
+/**
+ * Bảo đảm có tài khoản quản trị.
+ *
+ * - Lần chạy đầu: tạo tài khoản với mật khẩu sinh NGẪU NHIÊN cho riêng máy này (không có mật
+ *   khẩu mặc định nào nằm trong mã nguồn) và ghi ra file TAI-KHOAN-ADMIN.txt.
+ * - Các lần sau: KHÔNG đụng vào tài khoản — mật khẩu đã đổi trên web vẫn giữ nguyên.
+ * - Chỉ khi chạy kèm --dat-lai-mat-khau mới sinh mật khẩu mới (dùng khi quên).
+ */
+async function ensureAdmin() {
+  const { createClient } = await import('@libsql/client');
+  const db = createClient({ url: `file:${DB_FILE}` });
+  await db.execute('PRAGMA busy_timeout = 5000');
+
+  try {
+    const admins = await db.execute(
+      "SELECT email, password_hash FROM users WHERE role = 'admin' ORDER BY id LIMIT 1",
+    );
+    const current = admins.rows[0];
+    if (current && !RESET_PASSWORD) {
+      const password = savedPassword();
+      const stillValid = password !== null && passwordMatches(password, current.password_hash);
+      return {
+        status: stillValid ? 'unchanged' : 'changed-on-web',
+        email: String(current.email),
+        password,
+      };
+    }
+
+    const email = current ? String(current.email) : ADMIN_EMAIL;
+    const password = randomBytes(9).toString('base64url');
+    const hash = hashPassword(password);
+    const existing = await db.execute({
+      sql: 'SELECT id FROM users WHERE email = ?',
+      args: [email],
+    });
+    if (existing.rows.length > 0) {
+      await db.execute({
+        sql: "UPDATE users SET role = 'admin', password_hash = ? WHERE email = ?",
+        args: [hash, email],
+      });
+      // Mật khẩu vừa đổi thì các phiên đăng nhập cũ không còn hợp lệ
+      await db.execute({
+        sql: 'DELETE FROM sessions WHERE user_id = ?',
+        args: [existing.rows[0].id],
+      });
+    } else {
+      await db.execute({
+        sql: "INSERT INTO users (email, name, password_hash, role) VALUES (?, ?, ?, 'admin')",
+        args: [email, ADMIN_NAME, hash],
+      });
+    }
+    writeCredentials(email, password);
+    return { status: current ? 'reset' : 'created', email, password };
+  } finally {
+    db.close();
+  }
 }
 
 function openBrowser(url) {
@@ -224,14 +272,23 @@ function openBrowser(url) {
 }
 
 function announce(admin) {
-  const saved = existsSync(CREDENTIALS_FILE) ? readFileSync(CREDENTIALS_FILE, 'utf8') : '';
-  const password = admin.password ?? /Mật khẩu\s*:\s*(\S+)/.exec(saved)?.[1];
+  const notes = {
+    created: `(tài khoản vừa tạo — đã lưu vào file ${CREDENTIALS_FILE})`,
+    reset: `(mật khẩu vừa được đặt lại — đã lưu vào file ${CREDENTIALS_FILE})`,
+    unchanged: `(giữ nguyên từ lần trước — xem file ${CREDENTIALS_FILE})`,
+    'changed-on-web': '(bạn đã đổi mật khẩu trên web — dùng mật khẩu bạn đã đặt)',
+  };
+  const password = admin.status === 'changed-on-web' ? '••••••••' : admin.password;
+
   console.log('\n══════════════════════════════════════════════════════');
   console.log(`  Website đang chạy:   ${SITE}`);
   console.log(`  Đăng nhập quản trị:  ${SITE}/dang-nhap`);
   console.log(`    Email:    ${admin.email}`);
-  console.log(`    Mật khẩu: ${password ?? '(đã đổi — dùng mật khẩu bạn đã đặt)'}`);
-  if (admin.created) console.log(`  (đã lưu vào file ${CREDENTIALS_FILE})`);
+  console.log(`    Mật khẩu: ${password}`);
+  console.log(`    ${notes[admin.status]}`);
+  if (admin.status === 'changed-on-web') {
+    console.log('    Quên mật khẩu? Chạy lại kèm:  --dat-lai-mat-khau');
+  }
   console.log('  Quản trị bài viết:   Tài khoản → Quản trị bài viết');
   console.log('  Dừng web: bấm Ctrl + C trong cửa sổ này.');
   console.log('══════════════════════════════════════════════════════\n');

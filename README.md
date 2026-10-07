@@ -38,6 +38,10 @@ tài khoản quản trị** ở lần chạy đầu:
 - Mật khẩu: sinh ngẫu nhiên cho riêng máy bạn, hiện trong cửa sổ lệnh và lưu ở file
   `TAI-KHOAN-ADMIN.txt` (file này không được đưa lên git).
 
+Chạy lại script **không đổi mật khẩu**: tài khoản chỉ được tạo ở lần đầu, mật khẩu bạn đổi trên
+web vẫn giữ nguyên. Quên mật khẩu thì bấm đúp `dat-lai-mat-khau.bat` (Mac/Linux:
+`./chay-web.sh --dat-lai-mat-khau`) để nhận mật khẩu mới.
+
 Đăng nhập xong vào **Tài khoản → Quản trị bài viết** để viết bài SEO. Dừng web bằng `Ctrl + C`.
 Lần chạy đầu cần mạng và mất vài phút; các lần sau chỉ vài giây.
 
