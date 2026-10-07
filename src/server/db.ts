@@ -1,5 +1,6 @@
 import 'server-only';
-import { createClient, type Client, type InValue } from '@libsql/client';
+import { createClient as createNativeClient, type Client, type InValue } from '@libsql/client';
+import { createClient as createWebClient } from '@libsql/client/web';
 import { mkdirSync } from 'node:fs';
 import type { EnvVars } from '@/config/site';
 import { dirname, resolve } from 'node:path';
@@ -91,7 +92,13 @@ export async function openDatabase(config: DatabaseConfig): Promise<Db> {
     mkdirSync(dirname(resolve(config.url.slice('file:'.length))), { recursive: true });
   }
 
-  const db = createClient(config);
+  /*
+   * `file:` và `:memory:` cần bản native (có binary SQLite). `libsql://` thì dùng bản web — chỉ
+   * gọi HTTP, không cần binary nào — để trên serverless không phụ thuộc việc binary đúng nền
+   * tảng có được cài hay không.
+   */
+  const isLocal = config.url.startsWith('file:') || config.url === ':memory:';
+  const db = isLocal ? createNativeClient(config) : createWebClient(config);
   // SQLite cục bộ mặc định KHÔNG cưỡng chế khóa ngoại; thiếu dòng này thì ON DELETE CASCADE vô tác dụng
   await db.execute('PRAGMA foreign_keys = ON');
   await db.executeMultiple(SCHEMA);

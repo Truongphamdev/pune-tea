@@ -46,6 +46,31 @@ describe('databaseConfigFromEnv', () => {
   });
 });
 
+describe('GET /api/suc-khoe', () => {
+  it('báo ok và loại database khi nối được', async () => {
+    const { GET } = await import('@/app/api/suc-khoe/route');
+    const response = await GET();
+    expect(response.status).toBe(200);
+    // Loại database đọc từ biến môi trường (ở test chưa đặt → file), không từ kết nối đang dùng
+    expect(await response.json()).toEqual({ ok: true, database: 'file' });
+  });
+
+  it('nối hỏng thì trả 503 kèm lý do, không lộ token', async () => {
+    const { GET } = await import('@/app/api/suc-khoe/route');
+    const broken = await openDatabase({ url: ':memory:' });
+    broken.execute = async () => {
+      throw new Error('kết nối hỏng eyJaaa.bbb.ccc');
+    };
+    useDatabaseForTest(broken);
+
+    const response = await GET();
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.ok).toBe(false);
+    expect(body.error).toContain('kết nối hỏng [token]');
+  });
+});
+
 describe('password', () => {
   it('băm có muối: cùng mật khẩu ra hai chuỗi khác nhau, cả hai đều kiểm được', () => {
     const first = hashPassword('mat-khau-123');
