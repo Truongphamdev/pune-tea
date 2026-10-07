@@ -41,8 +41,20 @@ const nextConfig: NextConfig = {
   images: {
     // Ảnh nằm sẵn trong `public/images` — không tải ảnh từ tên miền ngoài nào (BA §4)
     remotePatterns: [],
-    // Định dạng nén hiện đại, Next tự chọn theo `Accept` của trình duyệt
-    formats: ['image/avif', 'image/webp'],
+    /*
+     * Chỉ WebP, không AVIF. Mỗi cỡ ảnh được nén ở lần đầu có người xem; nén AVIF một ảnh
+     * 1254px mất 1–3 giây, nên khách đầu tiên của mỗi trang sản phẩm nhìn khung trống vài giây.
+     * WebP nén nhanh gấp nhiều lần mà dung lượng chỉ nhỉnh hơn chút ít.
+     */
+    formats: ['image/webp'],
+    /*
+     * Ảnh gốc rộng nhất 1536px: không sinh bản 1920/2048/3840 — phóng to không thêm chi tiết,
+     * chỉ tốn thời gian nén và làm trình duyệt màn hình 2x chọn bản khổng lồ.
+     */
+    deviceSizes: [384, 640, 750, 828, 1080, 1200, 1536],
+    imageSizes: [72, 96, 128, 256],
+    // Bản đã nén giữ 30 ngày (ảnh tĩnh trong repo, đổi ảnh là đổi URL khi deploy lại)
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
 };
 
