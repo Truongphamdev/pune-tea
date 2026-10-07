@@ -1,6 +1,6 @@
 import { facebookPageUrl, SITE_NAME } from '@/config/site';
-import { listArticles } from '@/data/articles';
 import { listCategories, listFeaturedProducts, listProductsByCategory } from '@/data/catalog';
+import { listAllArticles } from '@/features/articles/all-articles';
 import { ArticleGrid } from '@/features/articles/ArticleCard';
 import { ProductGrid } from '@/features/catalog/ProductGrid';
 import { BrandStory } from '@/features/home/BrandStory';
@@ -11,6 +11,9 @@ import { SectionHeading } from '@/features/home/SectionHeading';
 import { JsonLd } from '@/features/seo/JsonLd';
 import { organizationJsonLd } from '@/features/seo/json-ld';
 import { pageMetadata } from '@/features/seo/metadata';
+
+/** Làm mới tối đa 5 phút một lần — khối bài viết mới lấy cả bài đăng từ trang quản trị. */
+export const revalidate = 300;
 
 /** Số bài viết mới nhất hiện trên trang chủ (FR-14). */
 const HOME_ARTICLE_LIMIT = 3;
@@ -26,7 +29,8 @@ export const metadata = {
 };
 
 /** Trang chủ — thứ tự khối theo BA §7.2 (FR-10…15). */
-export default function HomePage() {
+export default async function HomePage() {
+  const articles = await listAllArticles();
   const tiles = listCategories().map((category) => ({
     category,
     productCount: listProductsByCategory(category.slug).length,
@@ -67,7 +71,7 @@ export default function HomePage() {
         <section aria-labelledby="articles" className="py-14">
           <SectionHeading id="articles" title="Tin tức & bài viết" href="/bai-viet" centered />
           <div className="mt-8">
-            <ArticleGrid articles={listArticles().slice(0, HOME_ARTICLE_LIMIT)} />
+            <ArticleGrid articles={articles.slice(0, HOME_ARTICLE_LIMIT)} />
           </div>
         </section>
       </div>

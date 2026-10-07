@@ -1,9 +1,11 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/PageHeader';
 import { SITE_NAME } from '@/config/site';
 import { ChangePasswordForm } from '@/features/auth/ChangePasswordForm';
 import { LogoutButton } from '@/features/auth/LogoutButton';
 import { OrderHistory } from '@/features/auth/OrderHistory';
+import { ADMIN_ARTICLES_PATH } from '@/features/articles/editor-state';
 import { Breadcrumbs } from '@/features/catalog/Breadcrumbs';
 import { pageMetadata } from '@/features/seo/metadata';
 import { getCurrentUser } from '@/server/current-user';
@@ -31,6 +33,15 @@ export default async function AccountPage() {
       </PageHeader>
 
       <AccountCard user={user} />
+
+      {user.role === 'admin' ? (
+        <Link
+          href={ADMIN_ARTICLES_PATH}
+          className="w-fit rounded-full bg-gold-400 px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-gold-300"
+        >
+          Quản trị bài viết
+        </Link>
+      ) : null}
 
       <section aria-labelledby="order-history" className="flex flex-col gap-5">
         <h2 id="order-history" className="text-2xl font-bold text-brand-700">

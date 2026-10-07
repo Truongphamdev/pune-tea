@@ -68,6 +68,23 @@ Nó build vào thư mục riêng và dùng database riêng (`storage/e2e.db`), n
 - Xem database cục bộ: `sqlite3 storage/puni-tea.db` rồi `.tables`, `SELECT * FROM orders;`.
 - Xóa sạch dữ liệu thử: dừng web rồi xóa thư mục `storage/`.
 
+## Quản trị bài viết SEO
+
+Quản trị viên vào **Tài khoản → Quản trị bài viết** (`/quan-tri/bai-viet`) để viết, sửa, đăng bài.
+
+- Form soạn bài chấm **chuẩn SEO trực tiếp** (7 tiêu chí) và xem trước kết quả Google ngay khi gõ.
+- "Lưu nháp" lúc nào cũng được; "Đăng bài" chỉ thành công khi đạt đủ 7 tiêu chí.
+- Cú pháp nội dung: `## Tiêu đề mục`, `### Tiêu đề nhỏ`, `- gạch đầu dòng`, `1. danh sách số`,
+  `[chữ liên kết](/san-pham/tra-gung)`; dòng trống ngăn cách các đoạn.
+- Ảnh bìa chọn trong các ảnh có sẵn của site (không tải ảnh lên).
+
+Cấp quyền quản trị cho một tài khoản đã đăng ký (dùng database khai trong `.env.local`):
+
+```bash
+pnpm make-admin email@vidu.com            # cấp quyền
+pnpm make-admin email@vidu.com --remove   # gỡ quyền
+```
+
 ## Deploy: Vercel + Turso (miễn phí)
 
 Vercel chạy serverless nên không giữ được file SQLite; database khi deploy đặt ở **Turso**
@@ -110,19 +127,20 @@ trên serverless mỗi phiên bản hàm có bộ đếm riêng nên giới hạ
 
 ## Các trang
 
-| Đường dẫn          | Nội dung                                                    |
-| ------------------ | ----------------------------------------------------------- |
-| `/`                | Trang chủ: banner, danh mục, sản phẩm nổi bật, bài viết mới |
-| `/san-pham`        | Tất cả sản phẩm — lọc danh mục, sắp xếp giá, tìm theo tên   |
-| `/danh-muc/[slug]` | Trang danh mục                                              |
-| `/san-pham/[slug]` | Chi tiết sản phẩm — chọn loại, số lượng, thêm vào giỏ       |
-| `/gio-hang`        | Giỏ hàng, thông tin nhận hàng, đặt hàng qua Facebook        |
-| `/dang-ky`         | Đăng ký (không xác minh email)                              |
-| `/dang-nhap`       | Đăng nhập                                                   |
-| `/tai-khoan`       | Thông tin tài khoản, lịch sử đơn, đổi mật khẩu, đăng xuất   |
-| `/bai-viet`        | Danh sách và chi tiết bài viết                              |
-| `/gioi-thieu`      | Giới thiệu                                                  |
-| `/lien-he`         | Liên hệ và hướng dẫn đặt hàng                               |
+| Đường dẫn            | Nội dung                                                    |
+| -------------------- | ----------------------------------------------------------- |
+| `/`                  | Trang chủ: banner, danh mục, sản phẩm nổi bật, bài viết mới |
+| `/san-pham`          | Tất cả sản phẩm — lọc danh mục, sắp xếp giá, tìm theo tên   |
+| `/danh-muc/[slug]`   | Trang danh mục                                              |
+| `/san-pham/[slug]`   | Chi tiết sản phẩm — chọn loại, số lượng, thêm vào giỏ       |
+| `/gio-hang`          | Giỏ hàng, thông tin nhận hàng, đặt hàng qua Facebook        |
+| `/dang-ky`           | Đăng ký (không xác minh email)                              |
+| `/dang-nhap`         | Đăng nhập                                                   |
+| `/tai-khoan`         | Thông tin tài khoản, lịch sử đơn, đổi mật khẩu, đăng xuất   |
+| `/quan-tri/bai-viet` | Quản trị bài viết SEO (chỉ quản trị viên)                   |
+| `/bai-viet`          | Danh sách và chi tiết bài viết                              |
+| `/gioi-thieu`        | Giới thiệu                                                  |
+| `/lien-he`           | Liên hệ và hướng dẫn đặt hàng                               |
 
 ## Cấu trúc thư mục
 
@@ -153,7 +171,8 @@ e2e/              Kịch bản trên trình duyệt thật (Playwright)
 vào đúng nhóm. Ảnh đặt trong `public/images/products/`. Sản phẩm mới tự xuất hiện ở trang danh
 sách, trang danh mục và sitemap.
 
-**Thêm bài viết** — tạo file trong `src/data/articles/` theo mẫu các bài có sẵn, rồi thêm vào
+**Thêm bài viết** — dùng trang Quản trị bài viết (xem bên dưới). Hoặc, với bài đi kèm mã nguồn:
+tạo file trong `src/data/articles/` theo mẫu các bài có sẵn, rồi thêm vào
 mảng trong `src/data/articles/index.ts`. `pnpm test` sẽ kiểm bài theo chuẩn SEO: tiêu đề ≤ 60 ký
 tự, mô tả 120–160 ký tự, từ 600 từ, ít nhất 3 tiêu đề H2 và 2 liên kết nội bộ.
 
@@ -164,5 +183,5 @@ tự, mô tả 120–160 ký tự, từ 600 từ, ít nhất 3 tiêu đề H2 v�
 Có: trưng bày sản phẩm, giỏ hàng, đặt hàng qua Facebook, đăng ký/đăng nhập, lịch sử đơn, bài viết, SEO kỹ thuật (metadata,
 sitemap, robots, JSON-LD), giao diện responsive.
 
-Không có (cố ý): thanh toán trực tuyến, xác minh email, quên mật khẩu, trang quản trị, tồn kho, phí vận
+Không có (cố ý): thanh toán trực tuyến, xác minh email, quên mật khẩu, quản trị sản phẩm/đơn hàng, tồn kho, phí vận
 chuyển, mã giảm giá.

@@ -2,7 +2,7 @@
 
 | Thông tin   | Chi tiết                                                                 |
 | ----------- | ------------------------------------------------------------------------ |
-| Phiên bản   | 1.1                                                                      |
+| Phiên bản   | 1.2                                                                      |
 | Ngày lập    | 06/10/2026                                                               |
 | Loại dự án  | **Đồ án** (không vận hành thật) — website giới thiệu & đặt mua trà gói   |
 | Nguồn gốc   | Clone từ `ecommerce-web/apps/web` rồi sửa thành tea shop                 |
@@ -51,7 +51,8 @@ Mục tiêu:
 - **Thanh toán** dưới mọi hình thức: cổng thanh toán, ví, QR ngân hàng, COD có ghi nhận đơn.
 - **Backend riêng** — không NestJS, PostgreSQL, Redis, MinIO, hàng đợi (từ v1.1 có SQLite chạy ngay trong Next.js, xem §7.9).
 - **Xác minh email, quên mật khẩu** (đổi mật khẩu khi đang đăng nhập thì có — FR-85), wishlist, đánh giá sản phẩm.
-- **Trang quản trị (admin)** — dữ liệu sửa trực tiếp trong mã nguồn (`src/data/`).
+- **Trang quản trị sản phẩm/đơn hàng** — sản phẩm sửa trực tiếp trong mã nguồn (`src/data/`). Riêng
+  bài viết thì có khu quản trị từ v1.2 (§7.10).
 - Mã giảm giá, tồn kho, phí vận chuyển, đa ngôn ngữ, chế độ tối (dark mode).
 - Triển khai lên máy chủ thật, CI/CD.
 
@@ -360,6 +361,31 @@ lưu tài khoản và đơn hàng; sản phẩm và bài viết vẫn là dữ l
 - Các trang `/dang-nhap`, `/dang-ky`, `/tai-khoan` là `noindex` và không có trong sitemap.
 
 Vẫn **không** có thanh toán: đơn lưu lại chỉ để khách xem lịch sử.
+
+### 7.10. Quản trị bài viết SEO (bổ sung v1.2 — 07/10/2026, theo yêu cầu khách)
+
+Khách cần màn hình "đăng bài SEO" để đưa vào báo cáo. Bổ sung khu quản trị bài viết:
+
+- **FR-90** `/quan-tri/bai-viet` (chỉ quản trị viên): danh sách bài đã soạn kèm trạng thái (nháp / đã
+  đăng) và điểm SEO; nút viết mới, sửa, xóa. Các bài có sẵn trong mã nguồn hiện ở chế độ chỉ xem.
+- **FR-91** Form soạn bài (`/quan-tri/bai-viet/moi`, `/quan-tri/bai-viet/[id]`): tiêu đề, mô tả ngắn,
+  ảnh bìa (chọn trong các ảnh có sẵn của site — không tải ảnh lên), mô tả ảnh bìa, nội dung, sản
+  phẩm liên quan. Nội dung soạn bằng cú pháp đơn giản: `##` tiêu đề mục, `###` tiêu đề nhỏ, `-`
+  gạch đầu dòng, `1.` danh sách số, `[chữ](/duong-dan)` liên kết nội bộ.
+- **FR-92** Cột bên phải **chấm chuẩn SEO trực tiếp** theo §8.2 (7 tiêu chí, cập nhật theo từng ký tự)
+  và **xem trước kết quả Google** (tiêu đề, đường dẫn, mô tả). Có xem trước nội dung đã dựng.
+- **FR-93** "Lưu nháp" lưu được ở mọi trạng thái; **"Đăng bài" chỉ thành công khi đạt đủ 7 tiêu chí**
+  — máy chủ chấm lại, không tin kết quả chấm ở trình duyệt. Bài đã đăng hiện ở `/bai-viet`, trang
+  chủ và sitemap; bản nháp thì không.
+- **FR-94** Đường dẫn bài sinh từ tiêu đề (không dấu), tự thêm hậu tố khi trùng; sửa bài không đổi
+  đường dẫn và ngày đăng.
+- **BR-30** Quản trị viên là tài khoản có `role = 'admin'` trong database. Không có trang nào tự cấp
+  quyền — cấp bằng lệnh `pnpm make-admin <email>` (cần quyền truy cập database). Mọi trang và mọi
+  thao tác của khu quản trị kiểm quyền ở máy chủ; người dùng thường mở trang quản trị nhận 404.
+- **BR-31** Nội dung bài lưu ở dạng văn bản, khi hiển thị được dựng thành các khối có kiểu — HTML
+  người viết gõ vào chỉ hiện ra như chữ. Liên kết chỉ nhận đường dẫn nội bộ; ảnh chỉ nhận ảnh có
+  trong kho ảnh của site.
+- Vẫn ngoài phạm vi: quản trị sản phẩm/danh mục/đơn hàng, tải ảnh lên, nhiều cấp quyền.
 
 ### 7.8. Trang tĩnh
 

@@ -1,3 +1,4 @@
+import { createClient } from '@libsql/client';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 /**
@@ -311,6 +312,107 @@ test('đặt hàng được lưu vào lịch sử; đăng xuất xóa giỏ; đ�
   await page.getByLabel(/Mật khẩu/).fill('mat-khau-khac-456');
   await page.getByRole('button', { name: 'Đăng ký' }).click();
   await expect(page.getByText(/đã được đăng ký/)).toBeVisible();
+});
+
+/** Cấp quyền quản trị thẳng trong database thử — đúng cách duy nhất để có quản trị viên (không có trang nào tự cấp). */
+async function makeAdmin(email: string): Promise<void> {
+  const db = createClient({ url: 'file:storage/e2e.db' });
+  await db.execute('PRAGMA busy_timeout = 5000');
+  await db.execute({ sql: "UPDATE users SET role = 'admin' WHERE email = ?", args: [email] });
+  db.close();
+}
+
+function seoArticleBody(): string {
+  const paragraph = Array.from({ length: 70 }, () => 'Trà gừng ấm nồng dễ uống').join(' ');
+  return [
+    '## Trà gừng là gì',
+    `${paragraph} xem [trà gừng](/san-pham/tra-gung).`,
+    '## Cách pha',
+    `${paragraph} thuộc nhóm [trà túi lọc](/danh-muc/tra-tui-loc).`,
+    '### Mẹo nhỏ',
+    '- Tráng ly bằng nước nóng',
+    '## Bảo quản',
+    paragraph,
+  ].join('\n\n');
+}
+
+test('khu quản trị bài viết: chỉ quản trị viên vào được', async ({ page }, testInfo) => {
+  // Khách: bị đưa sang đăng nhập
+  await page.goto('/quan-tri/bai-viet');
+  await expect(page).toHaveURL(/\/dang-nhap\?tiep=%2Fquan-tri%2Fbai-viet$/);
+
+  // Người dùng thường: 404, không lộ là có trang quản trị
+  await signUp(page, testInfo, 'khong-phai-admin');
+  await expect(page.getByRole('link', { name: 'Quản trị bài viết' })).toHaveCount(0);
+  const response = await page.goto('/quan-tri/bai-viet/moi');
+  expect(response?.status()).toBe(404);
+});
+
+test('quản trị viên soạn bài: chấm SEO trực tiếp, chưa đạt thì không đăng, đạt thì bài lên site', async ({
+  page,
+}, testInfo) => {
+  const email = await signUp(page, testInfo, 'admin');
+  await makeAdmin(email);
+  const title = `Cách pha trà gừng ấm bụng ${testInfo.project.name}`;
+
+  await page.reload();
+  await page.getByRole('link', { name: 'Quản trị bài viết' }).click();
+  await page.getByRole('link', { name: '+ Viết bài mới' }).click();
+  await expect(page.getByTestId('seo-score')).toHaveText('1/7 đạt');
+
+  // Gõ tới đâu chấm tới đó
+  await page.getByLabel(/Tiêu đề/).fill(title);
+  await expect(page.getByTestId('seo-score')).toHaveText('2/7 đạt');
+  await page
+    .getByLabel(/Mô tả ngắn/)
+    .fill(
+      'Hướng dẫn pha trà gừng túi lọc Puni Tea đúng cách: lượng nước, nhiệt độ và thời gian ủ để có ly trà gừng thơm, ấm và vừa vị.',
+    );
+  await page.getByLabel('Ảnh bìa', { exact: true }).selectOption({ label: 'Trà Gừng' });
+  await page.getByLabel('Mô tả ảnh bìa (alt)').fill('Hai hộp trà gừng Puni Tea đặt trên bàn');
+  await page.getByLabel('Nội dung').fill('## Một mục\n\nNội dung còn quá ngắn.');
+  await expect(page.getByTestId('seo-score')).toHaveText('4/7 đạt');
+
+  // Chưa đạt: máy chủ từ chối đăng, nêu tiêu chí còn thiếu
+  await page.getByRole('button', { name: 'Đăng bài' }).click();
+  await expect(page.getByText('Bài chưa đạt chuẩn SEO nên chưa đăng được.')).toBeVisible();
+  await expect(page).toHaveURL(/\/quan-tri\/bai-viet\/moi$/);
+
+  // Viết đủ → đạt 7/7 → đăng được
+  await page.getByLabel('Nội dung').fill(seoArticleBody());
+  await expect(page.getByTestId('seo-score')).toHaveText('7/7 đạt');
+  await page.getByLabel('Trà Gừng', { exact: true }).check();
+  await page.getByRole('button', { name: 'Đăng bài' }).click();
+  await expect(page).toHaveURL(/\/quan-tri\/bai-viet$/);
+  const row = page.getByTestId('admin-article').filter({ hasText: title });
+  await expect(row).toContainText('Đã đăng');
+  await expect(row).toContainText('SEO 7/7');
+
+  // Bài hiện ở trang bài viết và mở được, có sản phẩm liên quan
+  await page.goto('/bai-viet');
+  await page.getByRole('link', { name: title }).click();
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Cách pha' })).toBeVisible();
+  // Chỉ tìm trong thân bài: chân trang và thẻ sản phẩm cũng có liên kết tên gần giống
+  const body = page.locator('main article').first();
+  await expect(body.getByRole('link', { name: 'trà túi lọc', exact: true })).toHaveAttribute(
+    'href',
+    '/danh-muc/tra-tui-loc',
+  );
+  await expect(page.getByTestId('product-card').filter({ hasText: 'Trà Gừng' })).toBeVisible();
+
+  // Sửa thành nháp → biến khỏi mặt tiền; xóa → hết trong danh sách
+  await page.goto('/quan-tri/bai-viet');
+  await row.getByRole('link', { name: 'Sửa' }).click();
+  await expect(page.getByLabel(/Tiêu đề/)).toHaveValue(title);
+  await page.getByRole('button', { name: 'Lưu nháp' }).click();
+  await expect(row).toContainText('Bản nháp');
+  await page.goto('/bai-viet');
+  await expect(page.getByRole('link', { name: title })).toHaveCount(0);
+
+  await page.goto('/quan-tri/bai-viet');
+  await row.getByRole('button', { name: /Xóa bài/ }).click();
+  await expect(page.getByTestId('admin-article').filter({ hasText: title })).toHaveCount(0);
 });
 
 const PAGES = [

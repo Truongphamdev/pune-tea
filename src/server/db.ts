@@ -21,6 +21,7 @@ const SCHEMA = `
     email         TEXT NOT NULL UNIQUE,
     name          TEXT NOT NULL,
     password_hash TEXT NOT NULL,
+    role          TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -54,7 +55,34 @@ const SCHEMA = `
     quantity       INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 99)
   );
   CREATE INDEX IF NOT EXISTS order_items_order_id ON order_items(order_id);
+
+  CREATE TABLE IF NOT EXISTS articles (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug         TEXT NOT NULL UNIQUE,
+    title        TEXT NOT NULL,
+    description  TEXT NOT NULL,
+    cover        TEXT NOT NULL,
+    cover_alt    TEXT NOT NULL,
+    body         TEXT NOT NULL,
+    related      TEXT NOT NULL DEFAULT '[]',
+    status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+    author_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    published_at TEXT,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `;
+
+/**
+ * Nâng cấp database đã có từ trước. `CREATE TABLE IF NOT EXISTS` không thêm cột vào bảng cũ, nên
+ * cột mới của bảng cũ phải thêm riêng — và chỉ khi chưa có, để chạy lại bao nhiêu lần cũng được.
+ */
+async function migrate(db: Client): Promise<void> {
+  const columns = await db.execute('PRAGMA table_info(users)');
+  if (!columns.rows.some((column) => column.name === 'role')) {
+    await db.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+  }
+}
 
 /**
  * Kết nối database qua `@libsql/client`: cùng một API cho ba nơi —
@@ -99,9 +127,19 @@ export async function openDatabase(config: DatabaseConfig): Promise<Db> {
    */
   const isLocal = config.url.startsWith('file:') || config.url === ':memory:';
   const db = isLocal ? createNativeClient(config) : createWebClient(config);
+  if (config.url.startsWith('file:')) {
+    /*
+     * File SQLite chỉ cho MỘT bên ghi tại một thời điểm. Mặc định, bên đến sau nhận lỗi
+     * "database is locked" ngay lập tức; `busy_timeout` cho nó chờ tới 5 giây, còn WAL để việc
+     * đọc không bị việc ghi chặn. Turso tự lo chuyện này nên không cần.
+     */
+    await db.execute('PRAGMA journal_mode = WAL');
+    await db.execute('PRAGMA busy_timeout = 5000');
+  }
   // SQLite cục bộ mặc định KHÔNG cưỡng chế khóa ngoại; thiếu dòng này thì ON DELETE CASCADE vô tác dụng
   await db.execute('PRAGMA foreign_keys = ON');
   await db.executeMultiple(SCHEMA);
+  await migrate(db);
   return db;
 }
 

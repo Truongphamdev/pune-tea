@@ -20,3 +20,10 @@ export function countWords(text: string): number {
   const trimmed = text.trim();
   return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
 }
+
+/** Đường dẫn không dấu từ một tiêu đề tiếng Việt: "Cách pha Trà Đào" → "cach-pha-tra-dao" (SEO-08). */
+export function slugify(text: string): string {
+  return foldVietnamese(text)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

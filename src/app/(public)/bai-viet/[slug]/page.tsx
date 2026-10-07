@@ -1,14 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import {
-  getArticleBySlug,
-  listArticleProducts,
-  listArticles,
-  listOtherArticles,
-  readingMinutes,
-} from '@/data/articles';
+import { listArticleProducts, readingMinutes } from '@/data/articles';
 import type { Article } from '@/data/types';
+import { getAnyArticleBySlug, listAllArticles } from '@/features/articles/all-articles';
 import { ArticleBody } from '@/features/articles/ArticleBody';
 import { ArticleGrid } from '@/features/articles/ArticleCard';
 import { Breadcrumbs } from '@/features/catalog/Breadcrumbs';
@@ -24,14 +19,19 @@ type Params = Promise<{ slug: string }>;
 /** Số bài viết khác hiện cuối bài (FR-61). */
 const OTHER_ARTICLE_LIMIT = 3;
 
-export const dynamicParams = false;
+/*
+ * Bài có sẵn và bài đã đăng được dựng sẵn lúc build; bài đăng SAU đó được dựng ở lần xem đầu
+ * (`dynamicParams`). Đường dẫn không khớp bài nào thì `notFound()` trả 404.
+ */
+export const dynamicParams = true;
+export const revalidate = 300;
 
-export function generateStaticParams(): { slug: string }[] {
-  return listArticles().map((article) => ({ slug: article.slug }));
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  return (await listAllArticles()).map((article) => ({ slug: article.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const article = getArticleBySlug((await params).slug);
+  const article = await getAnyArticleBySlug((await params).slug);
   if (!article) return {};
 
   return pageMetadata({
@@ -45,10 +45,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 /** Chi tiết bài viết (FR-61). */
 export default async function ArticlePage({ params }: { params: Params }) {
-  const article = getArticleBySlug((await params).slug);
+  const article = await getAnyArticleBySlug((await params).slug);
   if (!article) notFound();
 
   const products = listArticleProducts(article);
+  const others = (await listAllArticles())
+    .filter((other) => other.slug !== article.slug)
+    .slice(0, OTHER_ARTICLE_LIMIT);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10">
@@ -85,7 +88,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
       <section aria-labelledby="other-articles" className="border-t border-line pt-10">
         <SectionHeading id="other-articles" title="Bài viết khác" href="/bai-viet" />
         <div className="mt-8">
-          <ArticleGrid articles={listOtherArticles(article.slug, OTHER_ARTICLE_LIMIT)} />
+          <ArticleGrid articles={others} />
         </div>
       </section>
     </main>

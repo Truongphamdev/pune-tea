@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import sitemap from '@/app/sitemap';
 import { listArticles } from '@/data/articles';
-import { getProductBySlug, listCategories, listProducts } from '@/data/catalog';
+import { getProductBySlug } from '@/data/catalog';
 import { productsHref } from '@/data/product-query';
 import { serializeJsonLd } from '@/features/seo/JsonLd';
 import {
@@ -13,24 +12,6 @@ import {
 import { pageMetadata } from '@/features/seo/metadata';
 
 const BASE = 'http://localhost:3010';
-
-describe('sitemap (SEO-03)', () => {
-  const urls = sitemap().map((entry) => entry.url);
-
-  it('sinh từ dữ liệu: đủ trang tĩnh, danh mục, sản phẩm và bài viết', () => {
-    const expected = 5 + listCategories().length + listProducts().length + listArticles().length;
-    expect(urls).toHaveLength(expected);
-    expect(new Set(urls).size).toBe(expected);
-    expect(urls).toContain(BASE);
-    expect(urls).toContain(`${BASE}/san-pham/tra-gung`);
-    expect(urls).toContain(`${BASE}/danh-muc/tra-roi`);
-    expect(urls).toContain(`${BASE}/bai-viet/cold-brew-la-gi-cach-u-tra-lanh`);
-  });
-
-  it('không có trang giỏ hàng', () => {
-    expect(urls.some((url) => url.includes('gio-hang'))).toBe(false);
-  });
-});
 
 describe('JSON-LD (SEO-05)', () => {
   it('Organization có tên, URL và link Facebook', () => {

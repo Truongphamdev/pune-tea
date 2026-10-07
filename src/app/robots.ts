@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/gio-hang', '/dang-nhap', '/dang-ky', '/tai-khoan', '/api/'],
+      disallow: ['/gio-hang', '/dang-nhap', '/dang-ky', '/tai-khoan', '/quan-tri', '/api/'],
     },
     sitemap: `${siteUrl()}/sitemap.xml`,
   };

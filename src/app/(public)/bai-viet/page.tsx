@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/PageHeader';
 import { SITE_NAME } from '@/config/site';
-import { listArticles } from '@/data/articles';
+import { listAllArticles } from '@/features/articles/all-articles';
 import { ArticleGrid } from '@/features/articles/ArticleCard';
 import { Breadcrumbs } from '@/features/catalog/Breadcrumbs';
 import { pageMetadata } from '@/features/seo/metadata';
@@ -12,7 +12,15 @@ export const metadata = pageMetadata({
 });
 
 /** Danh sách bài viết (FR-60), mới nhất trước. */
-export default function ArticlesPage() {
+/**
+ * Dựng tĩnh, làm mới tối đa 5 phút một lần. Đăng/sửa/xóa bài ở trang quản trị còn gọi
+ * `revalidatePath` nên bài mới hiện ngay, không phải chờ.
+ */
+export const revalidate = 300;
+
+export default async function ArticlesPage() {
+  const articles = await listAllArticles();
+
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
       <PageHeader
@@ -25,7 +33,7 @@ export default function ArticlesPage() {
         <h2 id="all-articles" className="text-2xl font-bold">
           Tất cả bài viết
         </h2>
-        <ArticleGrid articles={listArticles()} />
+        <ArticleGrid articles={articles} />
       </section>
     </main>
   );
