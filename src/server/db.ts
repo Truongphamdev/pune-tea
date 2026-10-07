@@ -1,6 +1,7 @@
 import 'server-only';
 import { createClient, type Client, type InValue } from '@libsql/client';
 import { mkdirSync } from 'node:fs';
+import type { EnvVars } from '@/config/site';
 import { dirname, resolve } from 'node:path';
 
 /** Database mặc định khi chạy máy cá nhân: một file SQLite, nằm ngoài `src/`, không đưa vào git. */
@@ -68,8 +69,18 @@ export interface DatabaseConfig {
 }
 
 /** Đọc cấu hình từ biến môi trường; thiếu thì dùng file cục bộ. */
-export function databaseConfigFromEnv(env: NodeJS.ProcessEnv = process.env): DatabaseConfig {
+export function databaseConfigFromEnv(env: EnvVars = process.env): DatabaseConfig {
   const url = env.DATABASE_URL?.trim() || DEFAULT_DATABASE_URL;
+  /*
+   * Serverless (Vercel) không có đĩa ghi được: rơi về file cục bộ ở đó thì lỗi chỉ hiện ra lúc
+   * khách bấm đăng ký, dưới dạng "trang gặp trục trặc" không nói lý do. Dừng ngay với thông
+   * báo nêu đúng biến còn thiếu để người deploy đọc được trong log.
+   */
+  if (env.VERCEL && url.startsWith('file:')) {
+    throw new Error(
+      'Thiếu DATABASE_URL (libsql://…) và DATABASE_AUTH_TOKEN trong Environment Variables của Vercel — serverless không lưu được file SQLite.',
+    );
+  }
   const authToken = env.DATABASE_AUTH_TOKEN?.trim();
   return authToken ? { url, authToken } : { url };
 }

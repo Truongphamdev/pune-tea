@@ -18,7 +18,22 @@ export const DEFAULT_FACEBOOK_PAGE_URL =
   'https://www.facebook.com/share/19fniaMu8F/?mibextid=wwXIfr';
 
 /** Địa chỉ mặc định khi chưa khai biến môi trường — trùng cổng dev của dự án (NFR-06). */
+/** Tập biến môi trường — kiểu lỏng để test truyền object thường, không cần đủ các khóa của Node. */
+export type EnvVars = Readonly<Record<string, string | undefined>>;
+
 const DEFAULT_SITE_URL = 'http://localhost:3010';
+
+/**
+ * URL mặc định khi chưa khai `NEXT_PUBLIC_SITE_URL`.
+ *
+ * Trên Vercel lấy tên miền production mà Vercel tự cấp (`VERCEL_PROJECT_PRODUCTION_URL`, không
+ * có giao thức): quên khai biến thì canonical, sitemap và thẻ chia sẻ không trỏ về
+ * `localhost` — lỗi lặng lẽ, không trang nào báo, chỉ Google thấy.
+ */
+export function defaultSiteUrl(env: EnvVars = process.env): string {
+  const vercel = env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  return vercel ? `https://${vercel}` : DEFAULT_SITE_URL;
+}
 
 export interface NavLink {
   readonly href: string;
@@ -64,7 +79,7 @@ export function siteUrl(): string {
   const url = urlFromEnv(
     'NEXT_PUBLIC_SITE_URL',
     process.env.NEXT_PUBLIC_SITE_URL,
-    DEFAULT_SITE_URL,
+    defaultSiteUrl(process.env),
     ['http:', 'https:'],
   );
   return url.href.replace(/\/+$/, '');

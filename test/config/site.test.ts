@@ -5,6 +5,7 @@ import {
   SITE_ADDRESS,
   SITE_NAME,
   facebookPageUrl,
+  defaultSiteUrl,
   siteUrl,
 } from '@/config/site';
 
@@ -33,6 +34,13 @@ describe('siteUrl', () => {
   it('mặc định trỏ về máy chạy dev ở cổng 3010', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', '');
     expect(siteUrl()).toBe('http://localhost:3010');
+  });
+
+  it('trên Vercel chưa khai biến thì dùng tên miền production Vercel cấp', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', '');
+    vi.stubEnv('VERCEL_PROJECT_PRODUCTION_URL', 'pune-tea.vercel.app');
+    expect(siteUrl()).toBe('https://pune-tea.vercel.app');
+    expect(defaultSiteUrl({})).toBe('http://localhost:3010');
   });
 
   it('lấy URL từ NEXT_PUBLIC_SITE_URL và bỏ dấu / thừa ở cuối', () => {

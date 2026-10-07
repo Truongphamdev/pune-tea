@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authenticate, registerUser } from '@/server/auth-service';
-import { openDatabase, useDatabaseForTest, type Db } from '@/server/db';
+import { databaseConfigFromEnv, openDatabase, useDatabaseForTest, type Db } from '@/server/db';
 import { createOrder, listOrdersByUser, type NewOrder } from '@/server/orders';
 import { hashPassword, verifyPassword } from '@/server/password';
 import {
@@ -29,6 +29,22 @@ async function newUser(email = 'lan@example.com') {
   if (!user) throw new Error('không tạo được người dùng mẫu');
   return user;
 }
+
+describe('databaseConfigFromEnv', () => {
+  it('máy cá nhân: thiếu biến thì dùng file cục bộ; có biến thì dùng Turso kèm token', () => {
+    expect(databaseConfigFromEnv({})).toEqual({ url: 'file:storage/puni-tea.db' });
+    expect(
+      databaseConfigFromEnv({ DATABASE_URL: ' libsql://a.turso.io ', DATABASE_AUTH_TOKEN: 'tk' }),
+    ).toEqual({ url: 'libsql://a.turso.io', authToken: 'tk' });
+  });
+
+  it('trên Vercel mà thiếu DATABASE_URL thì dừng ngay với thông báo nêu tên biến', () => {
+    expect(() => databaseConfigFromEnv({ VERCEL: '1' })).toThrow(/DATABASE_URL/);
+    expect(() =>
+      databaseConfigFromEnv({ VERCEL: '1', DATABASE_URL: 'libsql://a.turso.io' }),
+    ).not.toThrow();
+  });
+});
 
 describe('password', () => {
   it('băm có muối: cùng mật khẩu ra hai chuỗi khác nhau, cả hai đều kiểm được', () => {
