@@ -14,7 +14,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes, scryptSync } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -82,8 +82,40 @@ function newestMtime(path) {
   );
 }
 
+/** Tên gói nhị phân của database ứng với máy đang chạy, ví dụ `@libsql+win32-x64-msvc`. */
+function nativePackagePrefix() {
+  const os =
+    { win32: 'win32', darwin: 'darwin', linux: 'linux' }[process.platform] ?? process.platform;
+  return `@libsql+${os}-${process.arch}`;
+}
+
+/**
+ * Thư mục `node_modules` có đúng là của máy NÀY không.
+ *
+ * Thư viện có phần nhị phân riêng cho từng hệ điều hành. Nếu cả thư mục dự án được chép hoặc nén
+ * từ máy khác (kèm `node_modules` của Linux/Mac) thì trên Windows web không chạy được, và lỗi
+ * hiện ra rất khó hiểu. Thấy không khớp thì xóa đi cài lại cho đúng máy.
+ */
+function modulesMatchThisMachine() {
+  const store = 'node_modules/.pnpm';
+  if (!existsSync(store)) return false;
+  return readdirSync(store).some((name) => name.startsWith(nativePackagePrefix()));
+}
+
+function removeDir(path) {
+  if (!existsSync(path)) return;
+  rmSync(path, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+}
+
+/** `true` khi phải cài thư viện. Dọn luôn bản cài và bản build của máy khác nếu có. */
 function needsInstall() {
   const marker = 'node_modules/.modules.yaml';
+  if (existsSync('node_modules') && !modulesMatchThisMachine()) {
+    step('Thư mục thư viện có sẵn là của máy khác — xóa để cài lại cho đúng máy này…');
+    removeDir('node_modules');
+    removeDir('.next');
+    return true;
+  }
   return !existsSync(marker) || statSync('pnpm-lock.yaml').mtimeMs > statSync(marker).mtimeMs;
 }
 

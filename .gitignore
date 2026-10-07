@@ -49,3 +49,6 @@ _workspace_*/
 
 # Tài khoản quản trị sinh ra khi chạy scripts/chay-web.mjs — chỉ nằm trên máy người chạy
 TAI-KHOAN-ADMIN.txt
+
+# Node.js tải sẵn bởi chay-web.bat cho máy chưa cài Node
+.node/

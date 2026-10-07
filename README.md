@@ -21,10 +21,15 @@ Chỉ một ứng dụng **Next.js 15** (App Router) + React 19 + TypeScript + T
 
 ## Chạy nhanh bằng một lệnh
 
-Cần cài sẵn [Node.js](https://nodejs.org) bản LTS (từ 20.11). Sau đó:
+- **Windows**: giải nén thư mục dự án ra, rồi bấm đúp file `chay-web.bat`. Không cần cài gì
+  trước — máy chưa có Node.js thì script tự tải bản Node.js chính thức về thư mục dự án
+  (khoảng 35 MB, có kiểm mã SHA-256), không cài gì vào máy.
+- **Mac / Linux**: cài [Node.js](https://nodejs.org) bản LTS (từ 20.11), mở Terminal trong thư mục
+  dự án, chạy `./chay-web.sh`.
 
-- **Windows**: bấm đúp file `chay-web.bat`.
-- **Mac / Linux**: mở Terminal trong thư mục dự án, chạy `./chay-web.sh`.
+Lưu ý: phải **giải nén** trước khi chạy — bấm đúp file ngay trong cửa sổ WinRAR/7-Zip sẽ không
+chạy được (script sẽ nhắc). Nếu thư mục có sẵn `node_modules` chép từ máy khác hệ điều hành,
+script tự xóa và cài lại cho đúng máy.
 
 Script tự cài thư viện, build, chạy web ở `http://localhost:3010`, mở trình duyệt, và **tạo sẵn
 tài khoản quản trị** ở lần chạy đầu:
