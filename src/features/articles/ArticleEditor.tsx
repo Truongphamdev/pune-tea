@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useActionState, useMemo, useState } from 'react';
+import { useActionState, useMemo, useState, useTransition } from 'react';
 import { Field, TextArea, TextInput } from '@/components/ui';
 import type { SiteImage } from '@/data/images';
 import { ArticleBody } from './ArticleBody';
@@ -223,16 +223,33 @@ export function ArticleEditor({
 }) {
   const [state, action, pending] = useActionState(saveArticleAction, EMPTY_ARTICLE_STATE);
   const [draft, setDraft] = useState(initial);
-  const set = (field: keyof EditorValues, value: string): void =>
+  // Kết quả máy chủ mà người viết đã sửa bài SAU khi nhận — thông báo của nó không còn đúng nữa
+  const [outdated, setOutdated] = useState<ArticleFormState | null>(null);
+  const [, startTransition] = useTransition();
+  const set = (field: keyof EditorValues, value: string): void => {
     setDraft((current) => ({ ...current, [field]: value }));
+    setOutdated(state);
+  };
   const checks = useMemo(() => checkSeo(draft), [draft]);
   const preview = useMemo(() => parseMarkup(draft.body), [draft.body]);
 
+  /*
+   * Tự gọi action thay vì để `<form action>` lo: React tự XÓA TRẮNG form sau mỗi lần action
+   * chạy xong. Bài bị từ chối đăng mà form bị đặt lại thì ô chọn ảnh bìa và các sản phẩm liên
+   * quan đã tích mất hết — người viết phải chọn lại từ đầu.
+   */
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const data = new FormData(event.currentTarget, submitter);
+    startTransition(() => action(data));
+  };
+
   return (
-    <form action={action} noValidate className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+    <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[1fr_22rem]">
       {draft.id !== null ? <input type="hidden" name="id" value={draft.id} /> : null}
       <div className="flex flex-col gap-5">
-        <EditorMessage state={state} />
+        {state === outdated ? null : <EditorMessage state={state} />}
         <DraftFields draft={draft} state={state} images={images} set={set} />
         <RelatedPicker products={products} selected={initial.related} />
         <SubmitButtons pending={pending} />

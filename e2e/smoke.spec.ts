@@ -377,10 +377,15 @@ test('quản trị viên soạn bài: chấm SEO trực tiếp, chưa đạt th�
   await page.getByRole('button', { name: 'Đăng bài' }).click();
   await expect(page.getByText('Bài chưa đạt chuẩn SEO nên chưa đăng được.')).toBeVisible();
   await expect(page).toHaveURL(/\/quan-tri\/bai-viet\/moi$/);
+  // Bị từ chối thì những gì đã chọn phải còn nguyên — form không được tự xóa trắng
+  await expect(page.getByLabel('Ảnh bìa', { exact: true })).not.toHaveValue('');
+  await expect(page.getByLabel(/Tiêu đề/)).toHaveValue(title);
 
   // Viết đủ → đạt 7/7 → đăng được
   await page.getByLabel('Nội dung').fill(seoArticleBody());
   await expect(page.getByTestId('seo-score')).toHaveText('7/7 đạt');
+  // Sửa bài xong thì lời từ chối cũ không còn đúng — phải biến mất
+  await expect(page.getByText('Bài chưa đạt chuẩn SEO nên chưa đăng được.')).toHaveCount(0);
   await page.getByLabel('Trà Gừng', { exact: true }).check();
   await page.getByRole('button', { name: 'Đăng bài' }).click();
   await expect(page).toHaveURL(/\/quan-tri\/bai-viet$/);
