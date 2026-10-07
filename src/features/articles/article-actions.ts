@@ -22,6 +22,7 @@ import { checkSeo, seoPassed } from './seo-check';
 const BODY_MAX_LENGTH = 60_000;
 const RELATED_MAX = 8;
 const SLUG_ATTEMPTS = 50;
+const NOT_FOUND = 'Không tìm thấy bài viết cần sửa.';
 
 const articleSchema = z.object({
   title: z.string().trim().min(1, 'Vui lòng nhập tiêu đề.').max(150, 'Tiêu đề quá dài.'),
@@ -69,11 +70,23 @@ async function uniqueSlug(title: string): Promise<string> {
   throw new Error('Không tìm được đường dẫn chưa dùng cho bài viết.');
 }
 
-function revalidateArticlePages(slug: string): void {
+/**
+ * Làm mới MỌI trang bài viết, không riêng bài vừa đổi: trang bài nào cũng có khối "Bài viết
+ * khác", nên một bài bị gỡ hay chuyển về nháp mà chỉ làm mới trang của chính nó thì các trang
+ * còn lại vẫn trưng thẻ dẫn tới một trang 404 cho tới hết hạn cache.
+ */
+function revalidateArticlePages(): void {
   revalidatePath('/');
   revalidatePath('/bai-viet');
-  revalidatePath(`/bai-viet/${slug}`);
+  revalidatePath('/bai-viet/[slug]', 'page');
   revalidatePath('/sitemap.xml');
+}
+
+/** Mã bài hợp lệ: chỉ chữ số. `Number('0x1')`, `Number(' 1 ')` hay `Number('abc')` không được lọt qua. */
+function parseId(raw: string): number | null {
+  if (!/^\d{1,15}$/.test(raw)) return null;
+  const id = Number(raw);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
 async function save(
@@ -122,26 +135,33 @@ export async function saveArticleAction(
   }
 
   const rawId = text(form, 'id');
-  const slug = await save(
-    rawId ? Number(rawId) : null,
-    {
-      ...parsed.data,
-      relatedProductSlugs: relatedSlugs(form),
-      status: publish ? 'published' : 'draft',
-    },
-    admin.id,
-  );
-  if (slug === null) return { errors: {}, message: 'Không tìm thấy bài viết cần sửa.' };
+  const id = rawId === '' ? null : parseId(rawId);
+  if (rawId !== '' && id === null) return { errors: {}, message: NOT_FOUND };
 
-  revalidateArticlePages(slug);
-  redirect(ADMIN_ARTICLES_PATH);
+  const input: ArticleInput = {
+    ...parsed.data,
+    relatedProductSlugs: relatedSlugs(form),
+    status: publish ? 'published' : 'draft',
+  };
+  try {
+    if ((await save(id, input, admin.id)) === null) return { errors: {}, message: NOT_FOUND };
+  } catch (error) {
+    // Lỗi database không được làm sập trang soạn bài — người viết sẽ mất cả bài đang gõ
+    console.error('Không lưu được bài viết:', error);
+    return {
+      errors: {},
+      message: 'Máy chủ gặp lỗi nên chưa lưu được bài. Bài vẫn còn trên form — hãy thử lại.',
+    };
+  }
+
+  revalidateArticlePages();
+  return { errors: {}, saved: true };
 }
 
 export async function deleteArticleAction(form: FormData): Promise<void> {
   if (!(await getAdmin())) return;
 
-  const id = Number(text(form, 'id'));
-  const existing = Number.isInteger(id) ? await findStoredArticleById(id) : null;
-  if (existing && (await deleteStoredArticle(id))) revalidateArticlePages(existing.slug);
+  const id = parseId(text(form, 'id'));
+  if (id !== null && (await deleteStoredArticle(id))) revalidateArticlePages();
   redirect(ADMIN_ARTICLES_PATH);
 }

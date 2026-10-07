@@ -91,7 +91,7 @@ describe('phân quyền quản trị', () => {
     expect(await save(draftForm())).toMatchObject({ message: 'Bạn không có quyền quản trị.' });
 
     await signIn('admin@example.com', true);
-    await expect(save(draftForm())).rejects.toThrow('REDIRECT:/quan-tri/bai-viet');
+    expect(await save(draftForm())).toMatchObject({ saved: true });
     const [article] = await listStoredArticles();
 
     await signIn('khach@example.com', false);
@@ -107,9 +107,9 @@ describe('saveArticleAction', () => {
   beforeEach(() => signIn('admin@example.com', true));
 
   it('đăng bài đạt chuẩn: có đường dẫn từ tiêu đề, hiện trên site và trong sitemap', async () => {
-    await expect(
-      save(draftForm({ related: ['tra-gung', 'khong-co', 'tra-gung'] })),
-    ).rejects.toThrow('REDIRECT:/quan-tri/bai-viet');
+    expect(await save(draftForm({ related: ['tra-gung', 'khong-co', 'tra-gung'] }))).toMatchObject({
+      saved: true,
+    });
 
     const [stored] = await listStoredArticles();
     expect(stored).toMatchObject({
@@ -125,9 +125,8 @@ describe('saveArticleAction', () => {
     expect((await sitemap()).map((entry) => entry.url)).toContain(
       'http://localhost:3010/bai-viet/cach-pha-tra-gung-am-bung-ngay-mua',
     );
-    expect(revalidated).toEqual(
-      expect.arrayContaining(['/', '/bai-viet', '/bai-viet/cach-pha-tra-gung-am-bung-ngay-mua']),
-    );
+    // Làm mới MỌI trang bài viết — trang bài khác cũng có thẻ dẫn tới bài này
+    expect(revalidated).toEqual(expect.arrayContaining(['/', '/bai-viet', '/bai-viet/[slug]']));
   });
 
   it('bài chưa đạt chuẩn SEO: KHÔNG đăng được, nhưng lưu nháp được', async () => {
@@ -138,12 +137,12 @@ describe('saveArticleAction', () => {
     expect(state.failedChecks?.map((check) => check.id)).toEqual(['words', 'h2', 'links']);
     expect(await listStoredArticles()).toEqual([]);
 
-    await expect(save(draftForm({ ...weak, intent: 'draft' }))).rejects.toThrow(/^REDIRECT:/);
+    expect(await save(draftForm({ ...weak, intent: 'draft' }))).toMatchObject({ saved: true });
     expect((await listStoredArticles())[0]?.status).toBe('draft');
   });
 
   it('bản nháp không lộ ra mặt tiền hay sitemap', async () => {
-    await expect(save(draftForm({ intent: 'draft' }))).rejects.toThrow(/^REDIRECT:/);
+    expect(await save(draftForm({ intent: 'draft' }))).toMatchObject({ saved: true });
 
     expect(await getAnyArticleBySlug('cach-pha-tra-gung-am-bung-ngay-mua')).toBeNull();
     expect((await listAllArticles()).length).toBe(listArticles().length);
@@ -170,12 +169,12 @@ describe('saveArticleAction', () => {
   });
 
   it('hai bài trùng tiêu đề nhận hai đường dẫn khác nhau; trùng bài có sẵn cũng vậy', async () => {
-    await expect(save(draftForm())).rejects.toThrow(/^REDIRECT:/);
-    await expect(save(draftForm())).rejects.toThrow(/^REDIRECT:/);
+    expect(await save(draftForm())).toMatchObject({ saved: true });
+    expect(await save(draftForm())).toMatchObject({ saved: true });
     // Tiêu đề này cho ra đúng đường dẫn của một bài có sẵn trong mã nguồn
-    await expect(save(draftForm({ title: 'Cold brew là gì? Cách ủ trà lạnh' }))).rejects.toThrow(
-      /^REDIRECT:/,
-    );
+    expect(await save(draftForm({ title: 'Cold brew là gì? Cách ủ trà lạnh' }))).toMatchObject({
+      saved: true,
+    });
 
     const slugs = (await listStoredArticles()).map((article) => article.slug).sort();
     expect(slugs).toEqual([
@@ -186,12 +185,12 @@ describe('saveArticleAction', () => {
   });
 
   it('sửa bài: giữ nguyên đường dẫn và ngày đăng; id lạ thì báo không tìm thấy', async () => {
-    await expect(save(draftForm())).rejects.toThrow(/^REDIRECT:/);
+    expect(await save(draftForm())).toMatchObject({ saved: true });
     const [before] = await listStoredArticles();
 
-    await expect(
-      save(draftForm({ id: String(before?.id), title: 'Tiêu đề đã đổi hoàn toàn khác' })),
-    ).rejects.toThrow(/^REDIRECT:/);
+    expect(
+      await save(draftForm({ id: String(before?.id), title: 'Tiêu đề đã đổi hoàn toàn khác' })),
+    ).toMatchObject({ saved: true });
     const [after] = await listStoredArticles();
     expect(after).toMatchObject({
       title: 'Tiêu đề đã đổi hoàn toàn khác',
@@ -204,8 +203,40 @@ describe('saveArticleAction', () => {
     });
   });
 
+  it.each(['abc', '1 OR 1=1', 'Infinity', '0x1', '+1', '1.0', ' 1 ', '-1', '1e2', '9'.repeat(30)])(
+    'mã bài "%s" không phải số nguyên dương: báo không tìm thấy, không sập, không sửa nhầm bài số 1',
+    async (id) => {
+      expect(await save(draftForm())).toMatchObject({ saved: true });
+
+      expect(await save(draftForm({ id, title: 'Bị sửa nhầm' }))).toMatchObject({
+        message: 'Không tìm thấy bài viết cần sửa.',
+      });
+      expect((await listStoredArticles()).map((article) => article.title)).toEqual([
+        goodDraft().title,
+      ]);
+
+      await expect(deleteArticleAction(form({ id }))).rejects.toThrow(/^REDIRECT:/);
+      expect(await listStoredArticles()).toHaveLength(1);
+    },
+  );
+
+  it('database lỗi khi lưu: trả thông báo, không ném lỗi làm sập trang soạn bài', async () => {
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const execute = db.execute.bind(db);
+    db.execute = async (statement) => {
+      const sql = typeof statement === 'string' ? statement : statement.sql;
+      if (/INSERT INTO articles/.test(sql)) throw new Error('mất kết nối');
+      return execute(statement as never);
+    };
+
+    const state = await save(draftForm());
+    expect(state.saved).toBeUndefined();
+    expect(state.message).toMatch(/Máy chủ gặp lỗi/);
+    quiet.mockRestore();
+  });
+
   it('xóa bài: biến mất khỏi site', async () => {
-    await expect(save(draftForm())).rejects.toThrow(/^REDIRECT:/);
+    expect(await save(draftForm())).toMatchObject({ saved: true });
     const [article] = await listStoredArticles();
 
     await expect(deleteArticleAction(form({ id: String(article?.id) }))).rejects.toThrow(

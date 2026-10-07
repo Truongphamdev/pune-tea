@@ -25,6 +25,7 @@ export default async function EditArticlePage({ params }: { params: Params }) {
       title="Sửa bài viết"
       initial={{
         id: article.id,
+        slug: article.slug,
         title: article.title,
         description: article.description,
         cover: article.cover,

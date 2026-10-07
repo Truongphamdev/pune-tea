@@ -50,12 +50,15 @@ export function SearchPreview({
   title,
   description,
   host,
+  slug: currentSlug,
 }: {
   title: string;
   description: string;
   host: string;
+  /** Đường dẫn thật của bài đang sửa — sửa tiêu đề KHÔNG đổi đường dẫn, nên phải hiện đúng nó. */
+  slug: string | null;
 }) {
-  const slug = slugify(title) || 'duong-dan-bai-viet';
+  const slug = currentSlug ?? (slugify(title) || 'duong-dan-bai-viet');
 
   return (
     <section aria-labelledby="search-preview" className="flex flex-col gap-3">

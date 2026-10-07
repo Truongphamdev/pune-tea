@@ -1,10 +1,10 @@
 # Puni Tea Shop
 
-Website **đồ án** giới thiệu và đặt mua các gói trà Puni Tea: trà túi lọc, trà rời, trà hòa tan.
+Website giới thiệu và đặt mua các gói trà Puni Tea: trà túi lọc, trà rời, trà hòa tan.
 Có giỏ hàng, giá, bài viết chuẩn SEO. **Không thanh toán trên web** — bấm đặt hàng thì nội dung
 đơn được sao chép và khách gửi cho shop qua Facebook page.
 
-> Giá trong dữ liệu mẫu là giá minh họa, sửa trong `src/data/products.ts`.
+> Giá sản phẩm sửa trong `src/data/products.ts`.
 
 Yêu cầu đầy đủ nằm ở [`docs/BA-tea-shop.md`](docs/BA-tea-shop.md).
 
@@ -19,7 +19,27 @@ Chỉ một ứng dụng **Next.js 15** (App Router) + React 19 + TypeScript + T
   `storage/puni-tea.db`, **tự tạo ở lần chạy đầu** — không cần cài hay bật database nào. Deploy
   thì trỏ sang Turso (xem mục Deploy).
 
-## Cài đặt & chạy
+## Chạy nhanh bằng một lệnh
+
+Cần cài sẵn [Node.js](https://nodejs.org) bản LTS (từ 20.11). Sau đó:
+
+- **Windows**: bấm đúp file `chay-web.bat`.
+- **Mac / Linux**: mở Terminal trong thư mục dự án, chạy `./chay-web.sh`.
+
+Script tự cài thư viện, build, chạy web ở `http://localhost:3010`, mở trình duyệt, và **tạo sẵn
+tài khoản quản trị** ở lần chạy đầu:
+
+- Email: `admin@punitea.vn`
+- Mật khẩu: sinh ngẫu nhiên cho riêng máy bạn, hiện trong cửa sổ lệnh và lưu ở file
+  `TAI-KHOAN-ADMIN.txt` (file này không được đưa lên git).
+
+Đăng nhập xong vào **Tài khoản → Quản trị bài viết** để viết bài SEO. Dừng web bằng `Ctrl + C`.
+Lần chạy đầu cần mạng và mất vài phút; các lần sau chỉ vài giây.
+
+Dữ liệu (tài khoản, đơn hàng, bài viết) lưu trong file `storage/puni-tea.db` trên máy này, tách
+biệt với bản đã đưa lên mạng. Tùy chọn: `--port 3020` đổi cổng, `--no-open` không mở trình duyệt.
+
+## Cài đặt & chạy (thủ công)
 
 Cần Node.js ≥ 20.11 và pnpm 9.
 
@@ -178,7 +198,7 @@ tự, mô tả 120–160 ký tự, từ 600 từ, ít nhất 3 tiêu đề H2 v�
 
 **Đổi link Facebook, tên shop, địa chỉ** — `src/config/site.ts`.
 
-## Phạm vi đồ án
+## Phạm vi
 
 Có: trưng bày sản phẩm, giỏ hàng, đặt hàng qua Facebook, đăng ký/đăng nhập, lịch sử đơn, bài viết, SEO kỹ thuật (metadata,
 sitemap, robots, JSON-LD), giao diện responsive.

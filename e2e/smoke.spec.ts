@@ -359,6 +359,12 @@ test('quản trị viên soạn bài: chấm SEO trực tiếp, chưa đạt th�
   await page.getByRole('link', { name: 'Quản trị bài viết' }).click();
   await page.getByRole('link', { name: '+ Viết bài mới' }).click();
   await expect(page.getByTestId('seo-score')).toHaveText('1/7 đạt');
+  // Form soạn bài không được tràn ngang, kể cả trên màn hình điện thoại
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    ),
+  ).toBeLessThanOrEqual(0);
 
   // Gõ tới đâu chấm tới đó
   await page.getByLabel(/Tiêu đề/).fill(title);
@@ -410,12 +416,23 @@ test('quản trị viên soạn bài: chấm SEO trực tiếp, chưa đạt th�
   await page.goto('/quan-tri/bai-viet');
   await row.getByRole('link', { name: 'Sửa' }).click();
   await expect(page.getByLabel(/Tiêu đề/)).toHaveValue(title);
+  // Sửa tiêu đề KHÔNG đổi đường dẫn: khung xem trước Google phải hiện đúng đường dẫn thật
+  await page.getByLabel(/Tiêu đề/).fill(`${title} bản sửa`);
+  await expect(
+    page.getByText(/› bai-viet › cach-pha-tra-gung-am-bung-(desktop|mobile)$/),
+  ).toBeVisible();
+  await page.getByLabel(/Tiêu đề/).fill(title);
   await page.getByRole('button', { name: 'Lưu nháp' }).click();
   await expect(row).toContainText('Bản nháp');
   await page.goto('/bai-viet');
   await expect(page.getByRole('link', { name: title })).toHaveCount(0);
 
   await page.goto('/quan-tri/bai-viet');
+  // Xóa phải hỏi lại: bấm Hủy thì bài còn, đồng ý mới xóa
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await row.getByRole('button', { name: /Xóa bài/ }).click();
+  await expect(row).toHaveCount(1);
+  page.once('dialog', (dialog) => dialog.accept());
   await row.getByRole('button', { name: /Xóa bài/ }).click();
   await expect(page.getByTestId('admin-article').filter({ hasText: title })).toHaveCount(0);
 });

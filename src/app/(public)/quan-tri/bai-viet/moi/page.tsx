@@ -19,6 +19,7 @@ export default async function NewArticlePage() {
       title="Viết bài mới"
       initial={{
         id: null,
+        slug: null,
         title: '',
         description: '',
         cover: '',

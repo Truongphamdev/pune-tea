@@ -8,6 +8,8 @@ export interface ArticleFormState {
   readonly message?: string;
   /** Các tiêu chí SEO chưa đạt khi bấm Đăng — máy chủ chấm lại, không tin kết quả chấm ở trình duyệt. */
   readonly failedChecks?: readonly SeoCheck[];
+  /** Đã lưu xong — form chuyển về trang danh sách. */
+  readonly saved?: boolean;
 }
 
 export const EMPTY_ARTICLE_STATE: ArticleFormState = { errors: {} };

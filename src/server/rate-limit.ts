@@ -39,7 +39,7 @@ interface Bucket {
 }
 
 /*
- * Đếm trong bộ nhớ tiến trình — đủ cho một website đồ án chạy một tiến trình. Khởi động lại là
+ * Đếm trong bộ nhớ tiến trình — đủ cho một website nhỏ chạy một tiến trình. Khởi động lại là
  * mất bộ đếm; hệ thống thật nhiều máy chủ thì phải đếm ở kho dùng chung.
  *
  * Bộ đếm treo trên `globalThis`, KHÔNG phải biến cấp module: Next có thể đóng gói module này

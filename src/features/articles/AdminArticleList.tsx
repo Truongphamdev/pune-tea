@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Article } from '@/data/types';
 import { formatDate } from '@/lib/format';
 import type { StoredArticle } from '@/server/articles-store';
-import { deleteArticleAction } from './article-actions';
+import { DeleteArticleButton } from './DeleteArticleButton';
 import { ADMIN_ARTICLES_PATH } from './editor-state';
 import { checkSeo } from './seo-check';
 
@@ -51,16 +51,7 @@ function StoredRow({ article }: { article: StoredArticle }) {
         >
           Sửa
         </Link>
-        <form action={deleteArticleAction}>
-          <input type="hidden" name="id" value={article.id} />
-          <button
-            type="submit"
-            aria-label={`Xóa bài ${article.title}`}
-            className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-          >
-            Xóa
-          </button>
-        </form>
+        <DeleteArticleButton id={article.id} title={article.title} />
       </div>
     </li>
   );

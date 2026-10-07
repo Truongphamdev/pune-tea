@@ -19,7 +19,8 @@ const nextConfig: NextConfig = {
    * lại thì rẻ và chắc: chống nhúng iframe (clickjacking), chống đoán MIME, giới hạn
    * referrer và các API trình duyệt trang không dùng.
    *
-   * Không đặt HSTS: đồ án chạy trên máy cá nhân qua HTTP, không có tên miền thật (BA §2.2).
+   * Không tự đặt HSTS ở đây: bản chạy trên máy cá nhân dùng HTTP, còn bản deploy đã được
+   * Vercel gắn sẵn header đó.
    */
   async headers() {
     return [

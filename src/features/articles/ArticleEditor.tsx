@@ -1,18 +1,21 @@
 'use client';
 
 import Image from 'next/image';
-import { useActionState, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState, useTransition } from 'react';
 import { Field, TextArea, TextInput } from '@/components/ui';
 import type { SiteImage } from '@/data/images';
 import { ArticleBody } from './ArticleBody';
 import { saveArticleAction } from './article-actions';
-import { EMPTY_ARTICLE_STATE, type ArticleFormState } from './editor-state';
+import { ADMIN_ARTICLES_PATH, EMPTY_ARTICLE_STATE, type ArticleFormState } from './editor-state';
 import { parseMarkup } from './markup';
 import { checkSeo, SEO_LIMITS } from './seo-check';
 import { SearchPreview, SeoChecklist } from './SeoPanel';
 
 export interface EditorValues {
   readonly id: number | null;
+  /** Đường dẫn hiện có của bài đang sửa; `null` với bài mới (đường dẫn sẽ sinh từ tiêu đề). */
+  readonly slug: string | null;
   readonly title: string;
   readonly description: string;
   readonly cover: string;
@@ -25,6 +28,12 @@ export interface EditorOption {
   readonly value: string;
   readonly label: string;
 }
+
+const SAVE_FAILED: ArticleFormState = {
+  errors: {},
+  message:
+    'Không gửi được bài lên máy chủ. Kiểm tra kết nối mạng rồi thử lại — bài vẫn còn trên form.',
+};
 
 const BODY_HINT = `## Tiêu đề mục
 
@@ -95,7 +104,7 @@ function RelatedPicker({
   selected: readonly string[];
 }) {
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset className="flex min-w-0 flex-col gap-2">
       <legend className="text-sm font-medium">Sản phẩm liên quan (hiện cuối bài)</legend>
       <div className="mt-2 grid max-h-44 gap-1.5 overflow-y-auto rounded-md border border-line bg-surface p-3 sm:grid-cols-2">
         {products.map((product) => (
@@ -206,6 +215,42 @@ function DraftFields({ draft, state, images, set }: DraftFieldsProps) {
   );
 }
 
+/** Trạng thái bản nháp và việc gửi bài lên máy chủ — tách khỏi phần dựng giao diện. */
+function useArticleDraft(initial: EditorValues) {
+  const router = useRouter();
+  const [state, setState] = useState<ArticleFormState>(EMPTY_ARTICLE_STATE);
+  const [draft, setDraft] = useState(initial);
+  // Kết quả máy chủ mà người viết đã sửa bài SAU khi nhận — thông báo của nó không còn đúng nữa
+  const [outdated, setOutdated] = useState<ArticleFormState | null>(null);
+  const [pending, startTransition] = useTransition();
+  const set = (field: keyof EditorValues, value: string): void => {
+    setDraft((current) => ({ ...current, [field]: value }));
+    setOutdated(state);
+  };
+  const checks = useMemo(() => checkSeo(draft), [draft]);
+  const preview = useMemo(() => parseMarkup(draft.body), [draft.body]);
+
+  /*
+   * Tự gọi server action và tự giữ kết quả, không dùng `<form action>`:
+   * - React tự XÓA TRẮNG form sau mỗi action — bài bị từ chối đăng là mất ảnh bìa đã chọn;
+   * - mất mạng hay máy chủ lỗi thì action NÉM lỗi, và lỗi đó thay cả trang bằng màn báo sự cố
+   *   — mất toàn bộ bài đang soạn. Ở đây lỗi được bắt lại thành một dòng thông báo.
+   */
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    if (pending) return;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const data = new FormData(event.currentTarget, submitter);
+    startTransition(async () => {
+      const result = await saveArticleAction(EMPTY_ARTICLE_STATE, data).catch(() => SAVE_FAILED);
+      if (result.saved) router.push(ADMIN_ARTICLES_PATH);
+      else setState(result);
+    });
+  };
+
+  return { draft, state, outdated, pending, checks, preview, set, onSubmit };
+}
+
 /**
  * Form soạn bài viết SEO: nhập bên trái, chấm chuẩn SEO và xem trước Google bên phải — cập nhật
  * theo từng ký tự gõ. Bấm "Đăng bài" thì máy chủ chấm lại; chưa đạt thì không đăng.
@@ -221,34 +266,18 @@ export function ArticleEditor({
   products: readonly EditorOption[];
   host: string;
 }) {
-  const [state, action, pending] = useActionState(saveArticleAction, EMPTY_ARTICLE_STATE);
-  const [draft, setDraft] = useState(initial);
-  // Kết quả máy chủ mà người viết đã sửa bài SAU khi nhận — thông báo của nó không còn đúng nữa
-  const [outdated, setOutdated] = useState<ArticleFormState | null>(null);
-  const [, startTransition] = useTransition();
-  const set = (field: keyof EditorValues, value: string): void => {
-    setDraft((current) => ({ ...current, [field]: value }));
-    setOutdated(state);
-  };
-  const checks = useMemo(() => checkSeo(draft), [draft]);
-  const preview = useMemo(() => parseMarkup(draft.body), [draft.body]);
-
-  /*
-   * Tự gọi action thay vì để `<form action>` lo: React tự XÓA TRẮNG form sau mỗi lần action
-   * chạy xong. Bài bị từ chối đăng mà form bị đặt lại thì ô chọn ảnh bìa và các sản phẩm liên
-   * quan đã tích mất hết — người viết phải chọn lại từ đầu.
-   */
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
-    const submitter = (event.nativeEvent as SubmitEvent).submitter;
-    const data = new FormData(event.currentTarget, submitter);
-    startTransition(() => action(data));
-  };
+  const { draft, state, outdated, pending, checks, preview, set, onSubmit } =
+    useArticleDraft(initial);
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]"
+    >
       {draft.id !== null ? <input type="hidden" name="id" value={draft.id} /> : null}
-      <div className="flex flex-col gap-5">
+      {/* `min-w-0`: ô lưới mặc định không co nhỏ hơn nội dung — ô nhập dài sẽ đẩy trang tràn ngang */}
+      <div className="flex min-w-0 flex-col gap-5">
         {state === outdated ? null : <EditorMessage state={state} />}
         <DraftFields draft={draft} state={state} images={images} set={set} />
         <RelatedPicker products={products} selected={initial.related} />
@@ -263,7 +292,12 @@ export function ArticleEditor({
 
       <aside className="flex h-fit flex-col gap-6 rounded-card border border-line bg-surface p-5 lg:sticky lg:top-24">
         <SeoChecklist checks={checks} />
-        <SearchPreview title={draft.title} description={draft.description} host={host} />
+        <SearchPreview
+          title={draft.title}
+          description={draft.description}
+          host={host}
+          slug={initial.slug}
+        />
       </aside>
     </form>
   );

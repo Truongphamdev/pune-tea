@@ -46,3 +46,6 @@ Thumbs.db
 # Sản phẩm trung gian của harness (báo cáo worker/reviewer)
 _workspace/
 _workspace_*/
+
+# Tài khoản quản trị sinh ra khi chạy scripts/chay-web.mjs — chỉ nằm trên máy người chạy
+TAI-KHOAN-ADMIN.txt
