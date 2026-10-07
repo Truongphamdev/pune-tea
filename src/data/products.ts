@@ -86,8 +86,7 @@ const TEABAG_PRODUCTS: readonly Product[] = [
     ],
     specs: specs('Trà túi lọc', 'Túi Ivory', '40g (20 túi)'),
     variants: single('40g', '40g (20 túi)', 45_000),
-    images: [`${IMG}/tra-hoa-dau-biec.jpg`],
-    imageBackground: 'dark',
+    images: [`${IMG}/tra-hoa-dau-biec-v2.jpg`],
   },
   {
     slug: 'tra-gung',
@@ -100,8 +99,7 @@ const TEABAG_PRODUCTS: readonly Product[] = [
     ],
     specs: specs('Trà túi lọc', 'Túi Ivory', '40g (20 túi)'),
     variants: single('40g', '40g (20 túi)', 39_000),
-    images: [`${IMG}/tra-gung.jpg`],
-    imageBackground: 'dark',
+    images: [`${IMG}/tra-gung-v2.jpg`],
   },
   {
     slug: 'tra-shan-tuyet-cold-brew',
@@ -128,8 +126,7 @@ const TEABAG_PRODUCTS: readonly Product[] = [
     ],
     specs: specs('Trà túi lọc', 'Túi Ivory', '42g (12 gói × 3,5g)'),
     variants: single('42g', '42g (12 gói × 3,5g)', 59_000),
-    images: [`${IMG}/tra-matcha-gao-rang-cold-brew.jpg`],
-    imageBackground: 'dark',
+    images: [`${IMG}/tra-matcha-gao-rang-cold-brew-v2.jpg`],
   },
   {
     slug: 'tra-trai-cay-hop-thiec',

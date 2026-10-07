@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { SITE_NAME, SITE_TAGLINE, type NavLink } from '@/config/site';
-import { BrandLockup } from './BrandMark';
+import { BrandLogo } from './BrandMark';
 import { FacebookIcon } from './SocialIcons';
 
 /**
@@ -24,7 +24,7 @@ export function SiteFooter({
       <div className="mx-auto w-full max-w-6xl px-4 py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div className="flex flex-col gap-3">
-            <BrandLockup size="lg" />
+            <BrandLogo onDark className="h-16" />
             <p className="max-w-xs text-sm leading-relaxed text-white/80">{SITE_TAGLINE}</p>
           </div>
           <FooterColumn title="Liên kết nhanh" links={links} />

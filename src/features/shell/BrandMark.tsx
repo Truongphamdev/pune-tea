@@ -1,41 +1,39 @@
+import Image from 'next/image';
 import { SITE_NAME } from '@/config/site';
 
+/** Kích thước gốc của hai file logo trong `public/brand/` — để trình duyệt giữ chỗ đúng tỉ lệ. */
+const LOGO = { src: '/brand/logo.png', width: 458, height: 308 } as const;
+const LOGO_OUTLINE = { src: '/brand/logo-outline.png', width: 482, height: 332 } as const;
+
 /**
- * Nhận diện Puni Tea — wordmark chữ "Puni Tea" kèm hình lá đơn giản tự dựng (BA BR-05: khách
- * chưa gửi file logo nên không vẽ lại logo trong ảnh bao bì).
+ * Logo Puni Tea do khách gửi (07/10/2026), đã tách nền.
  *
- * Lá tô `currentColor`; nơi dùng chọn màu (vàng trên nền xanh, xanh trên nền sáng).
+ * Hai bản: bản thường cho nền sáng, và bản có viền trắng (`onDark`) cho nền xanh của thanh đầu
+ * trang và chân trang — huy hiệu vốn màu xanh, đặt thẳng lên nền xanh thì chìm mất.
+ *
+ * Chiều cao do `className` quyết định (`h-10`, `h-14`…), bề ngang tự theo tỉ lệ.
  */
-export function BrandMark({ className = 'size-7' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"
-        fill="currentColor"
-        fillOpacity="0.2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M5 19 14 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
+export function BrandLogo({
+  className = 'h-10',
+  onDark = false,
+  priority = false,
+}: {
+  className?: string;
+  onDark?: boolean;
+  priority?: boolean;
+}) {
+  const logo = onDark ? LOGO_OUTLINE : LOGO;
 
-/**
- * Tên shop bằng chữ thật (không phải ảnh) — trình đọc màn hình đọc được ngay khi nó là nội dung
- * duy nhất của link về trang chủ.
- */
-function BrandWordmark({ className = 'text-xl' }: { className?: string }) {
-  return <span className={`font-display font-bold tracking-tight ${className}`}>{SITE_NAME}</span>;
-}
-
-/** Lá + chữ, dùng ở header và footer. Màu lá vàng: tương phản 4.78:1 trên nền xanh brand-700. */
-export function BrandLockup({ size = 'md' }: { size?: 'md' | 'lg' }) {
   return (
-    <span className="flex items-center gap-2">
-      <BrandMark className={`${size === 'lg' ? 'size-9' : 'size-8'} text-gold-400`} />
-      <BrandWordmark className={size === 'lg' ? 'text-2xl' : 'text-xl'} />
-    </span>
+    <Image
+      src={logo.src}
+      alt={SITE_NAME}
+      width={logo.width}
+      height={logo.height}
+      priority={priority}
+      sizes="160px"
+      // `self-start` + `shrink-0`: trong khung flex cột, ảnh mặc định bị kéo giãn hết bề ngang
+      className={`w-auto shrink-0 self-start object-contain ${className}`}
+    />
   );
 }

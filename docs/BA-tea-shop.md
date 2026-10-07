@@ -159,10 +159,10 @@ trong ảnh [ẢNH]. **Toàn bộ giá là [GĐ]** — khách chưa gửi bảng
 | - | ------------------------------- | -------------------------------- | ---------------------------- | --------- | ------------------------------------- |
 | 1 | `tra-nhan-vang-gold-label`      | Trà Nhãn Vàng Gold Label         | 200g (100 túi × 2g)          | 89.000    | `tra-nhan-vang-gold-label.jpg`        |
 | 2 | `tra-huong-mang-cau`            | Trà Hương Mãng Cầu               | 50g (25 túi lọc)             | 39.000    | `tra-huong-mang-cau.jpg`              |
-| 3 | `tra-hoa-dau-biec`              | Trà Hoa Đậu Biếc                 | 40g (20 túi)                 | 45.000    | `tra-hoa-dau-biec.jpg` (nền đen)      |
-| 4 | `tra-gung`                      | Trà Gừng                         | 40g (20 túi)                 | 39.000    | `tra-gung.jpg` (nền đen)              |
+| 3 | `tra-hoa-dau-biec`              | Trà Hoa Đậu Biếc                 | 40g (20 túi)                 | 45.000    | `tra-hoa-dau-biec-v2.jpg`      |
+| 4 | `tra-gung`                      | Trà Gừng                         | 40g (20 túi)                 | 39.000    | `tra-gung-v2.jpg`              |
 | 5 | `tra-shan-tuyet-cold-brew`      | Trà Shan Tuyết Cold Brew         | 42g (12 gói × 3,5g)          | 65.000    | `tra-shan-tuyet-cold-brew.jpg`        |
-| 6 | `tra-matcha-gao-rang-cold-brew` | Trà Matcha Gạo Rang Cold Brew    | 42g (12 gói × 3,5g)          | 59.000    | `tra-matcha-gao-rang-cold-brew.jpg` (nền đen) |
+| 6 | `tra-matcha-gao-rang-cold-brew` | Trà Matcha Gạo Rang Cold Brew    | 42g (12 gói × 3,5g)          | 59.000    | `tra-matcha-gao-rang-cold-brew-v2.jpg` |
 | 7 | `tra-trai-cay-hop-thiec`        | Trà Trái Cây Hộp Thiếc Cao Cấp   | Hộp thiếc, túi lọc pyramid   | 185.000   | `tra-trai-cay-hop-thiec.jpg`          |
 
 **Trà rời**
@@ -196,8 +196,8 @@ Sản phẩm nổi bật [GĐ]: #1, #5, #7, #9, #12, #13.
 - **BR-03** Mọi chữ hiển thị là **tiếng Việt có dấu**; slug và tên file không dấu, chữ thường, gạch nối.
 - **BR-04** Mỗi sản phẩm phải có ít nhất 1 ảnh tồn tại thật trong `public/`, 1 biến thể giá > 0,
   và thuộc đúng một danh mục có thật — kiểm bằng test dữ liệu.
-- **BR-05** Không dùng logo, ảnh hay nội dung của Cozy. Logo Puni Tea khách chưa gửi file →
-  dùng **wordmark chữ** tự dựng (chữ "Puni Tea" + hình lá đơn giản), không vẽ lại logo trong ảnh.
+- **BR-05** Không dùng logo, ảnh hay nội dung của Cozy. Logo Puni Tea: dùng file khách gửi ngày
+  07/10/2026 (đã tách nền, `public/brand/`); bản có viền trắng dùng trên nền xanh của header/footer.
 
 ## 6. Bản đồ trang
 
@@ -397,7 +397,7 @@ Các ngưỡng đo được phải có **test tự động** kiểm trên toàn 
   khối nội dung rộng rãi. Tiêu đề khối canh giữa kèm gạch/hoa văn nhỏ màu vàng.
 - **Chữ**: giữ `Be Vietnam Pro` cho nội dung; font tiêu đề phải có **đủ dấu tiếng Việt**.
 - **Chỉ giao diện sáng** — gỡ phần dark mode của bản gốc.
-- **Ảnh nền đen** (3 sản phẩm, `imageBackground: 'dark'`): đặt trong khung nền tối để trông có chủ ý.
+- **Ảnh nền đen**: không còn — khách đã gửi ảnh nền sáng thay cho 3 sản phẩm (07/10/2026). Cờ `imageBackground: 'dark'` vẫn giữ trong mô hình để dùng khi cần.
 - **Responsive**: kiểm ở 360px, 768px, 1280px — không tràn ngang; lưới sản phẩm 2 / 3 / 4 cột.
 - **Truy cập**: mọi thao tác làm được bằng bàn phím, thấy rõ focus, nút có nhãn, tương phản đạt AA.
 - Thay toàn bộ nhận diện cũ ("HIÊN nhà Thỏ", màu cam đất, icon, `og-image`) bằng nhận diện Puni Tea.

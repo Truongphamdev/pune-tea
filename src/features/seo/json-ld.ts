@@ -17,7 +17,7 @@ export function organizationJsonLd(): Record<string, unknown> {
     '@type': 'Organization',
     name: SITE_NAME,
     url: siteUrl(),
-    logo: absolute('/icon.svg'),
+    logo: absolute('/brand/logo.png'),
     sameAs: [facebookPageUrl()],
   };
 }

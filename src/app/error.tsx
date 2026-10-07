@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { BrandMark } from '@/features/shell/BrandMark';
+import { BrandLogo } from '@/features/shell/BrandMark';
 
 /**
  * Màn hình lỗi chung của cả ứng dụng.
@@ -27,7 +27,7 @@ export default function AppError({
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-6 px-4 text-center">
-      <BrandMark className="size-10 text-brand-700" />
+      <BrandLogo className="h-16" />
 
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">Cửa hàng đang gặp trục trặc</h1>

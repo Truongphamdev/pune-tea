@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { SITE_NAME, type NavLink } from '@/config/site';
-import { BrandLockup } from './BrandMark';
+import { BrandLogo } from './BrandMark';
 import { HeaderAccount } from '@/features/auth/HeaderAccount';
 import { HeaderCart } from '@/features/cart/HeaderCart';
 import { HeaderSearch } from './HeaderSearch';
@@ -22,7 +22,8 @@ export function SiteHeader({ links, group }: { links: readonly NavLink[]; group:
           aria-label={`${SITE_NAME} — Trang chủ`}
           className="shrink-0 rounded-lg transition-opacity duration-200 hover:opacity-90"
         >
-          <BrandLockup />
+          {/* `priority`: logo nằm ngay đầu mọi trang */}
+          <BrandLogo onDark priority className="h-11" />
         </Link>
         <div className="ms-4 hidden flex-1 lg:block">
           <SiteNav links={links} group={group} />

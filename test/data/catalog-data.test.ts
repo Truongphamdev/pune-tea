@@ -89,12 +89,8 @@ describe('sản phẩm (BA §5.3, BR-04)', () => {
     ]);
   });
 
-  it('đúng 3 sản phẩm ảnh nền đen', () => {
-    expect(products.filter((p) => p.imageBackground === 'dark').map((p) => p.slug)).toEqual([
-      'tra-hoa-dau-biec',
-      'tra-gung',
-      'tra-matcha-gao-rang-cold-brew',
-    ]);
+  it('không còn sản phẩm nào dùng ảnh nền đen (khách đã gửi ảnh thay ngày 07/10/2026)', () => {
+    expect(products.filter((p) => p.imageBackground === 'dark')).toEqual([]);
   });
 });
 
