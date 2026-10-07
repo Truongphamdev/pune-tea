@@ -75,7 +75,7 @@ describe('SiteChrome — header (FR-01)', () => {
 });
 
 describe('SiteChrome — footer (FR-03) và nút nổi (FR-04)', () => {
-  it('footer có liên kết nhanh, 3 danh mục, địa chỉ, Facebook page và dòng bản quyền', () => {
+  it('footer có liên kết nhanh, 3 danh mục, Facebook page và dòng bản quyền', () => {
     renderChrome();
 
     const footer = screen.getByRole('contentinfo');
@@ -87,7 +87,8 @@ describe('SiteChrome — footer (FR-03) và nút nổi (FR-04)', () => {
       'href',
       '/danh-muc/tra-hoa-tan',
     );
-    expect(within(footer).getByText('Biên Hòa, Đồng Nai')).toBeInTheDocument();
+    // Khách yêu cầu không hiện địa chỉ ở bất kỳ đâu
+    expect(footer).not.toHaveTextContent(/Biên Hòa|Đồng Nai/);
     const facebook = within(footer).getByRole('link', { name: /Facebook page Puni Tea/ });
     expect(facebook).toHaveAttribute('href', DEFAULT_FACEBOOK_PAGE_URL);
     expect(facebook).toHaveAttribute('rel', 'noopener noreferrer');

@@ -1,18 +1,18 @@
 import { PageHeader } from '@/components/PageHeader';
-import { facebookPageUrl, SITE_ADDRESS, SITE_NAME } from '@/config/site';
+import { facebookPageUrl, SITE_NAME } from '@/config/site';
 import { Breadcrumbs } from '@/features/catalog/Breadcrumbs';
 import { OrderSteps } from '@/features/shell/OrderSteps';
 import { pageMetadata } from '@/features/seo/metadata';
 
 export const metadata = pageMetadata({
   title: 'Liên hệ',
-  description: `Liên hệ ${SITE_NAME} tại ${SITE_ADDRESS} qua Facebook page để được tư vấn chọn trà, hỏi về đơn hàng và xem hướng dẫn đặt hàng trong 3 bước.`,
+  description: `Liên hệ ${SITE_NAME} qua Facebook page để được tư vấn chọn trà, hỏi về đơn hàng và xem hướng dẫn đặt hàng trong 3 bước.`,
   path: '/lien-he',
 });
 
 /**
- * Trang Liên hệ (FR-71). Kênh liên hệ duy nhất là Facebook page — không hiện số điện thoại hay
- * email vì khách chưa cung cấp, và không có form gửi thư.
+ * Trang Liên hệ (FR-71). Kênh liên hệ duy nhất là Facebook page — khách yêu cầu không hiện địa
+ * chỉ, số điện thoại hay email; không có form gửi thư.
  */
 export default function ContactPage() {
   return (
@@ -52,10 +52,6 @@ function ContactCard() {
               Thương hiệu
             </dt>
             <dd className="text-base font-medium">{SITE_NAME}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold tracking-wide text-muted uppercase">Địa chỉ</dt>
-            <dd className="text-base font-medium">{SITE_ADDRESS}</dd>
           </div>
           <div>
             <dt className="text-xs font-semibold tracking-wide text-muted uppercase">

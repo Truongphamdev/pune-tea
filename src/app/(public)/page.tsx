@@ -1,4 +1,4 @@
-import { facebookPageUrl, SITE_ADDRESS, SITE_NAME } from '@/config/site';
+import { facebookPageUrl, SITE_NAME } from '@/config/site';
 import { listArticles } from '@/data/articles';
 import { listCategories, listFeaturedProducts, listProductsByCategory } from '@/data/catalog';
 import { ArticleGrid } from '@/features/articles/ArticleCard';
@@ -36,7 +36,7 @@ export default function HomePage() {
     <main>
       <JsonLd data={organizationJsonLd()} />
       <Hero
-        eyebrow={`${SITE_NAME} · ${SITE_ADDRESS}`}
+        eyebrow={SITE_NAME}
         title="Trà nền chuẩn vị Việt"
         subtitle="Trà túi lọc, trà rời và trà hòa tan đóng gói sẵn — chọn gói trà bạn thích, bỏ vào giỏ và đặt hàng qua Facebook."
         image="/images/categories/tra-roi.jpg"

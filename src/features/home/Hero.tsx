@@ -44,7 +44,7 @@ export function Hero({
               {eyebrow}
             </span>
           ) : null}
-          <h1 className="font-display text-4xl leading-[1.1] font-bold sm:text-5xl lg:text-6xl">
+          <h1 className="font-sans text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             {title}
           </h1>
           <span aria-hidden="true" className="h-1 w-16 rounded-full bg-gold-400" />

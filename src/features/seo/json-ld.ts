@@ -1,4 +1,4 @@
-import { facebookPageUrl, SITE_ADDRESS, SITE_NAME, siteUrl } from '@/config/site';
+import { facebookPageUrl, SITE_NAME, siteUrl } from '@/config/site';
 import type { Article, Product } from '@/data/types';
 
 /**
@@ -18,7 +18,6 @@ export function organizationJsonLd(): Record<string, unknown> {
     name: SITE_NAME,
     url: siteUrl(),
     logo: absolute('/icon.svg'),
-    address: { '@type': 'PostalAddress', addressLocality: SITE_ADDRESS, addressCountry: 'VN' },
     sameAs: [facebookPageUrl()],
   };
 }

@@ -22,7 +22,8 @@ const display = Lora({
 
 const sans = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
-  weight: ['400', '500', '600', '700'],
+  // 800 cho tiêu đề hero — khách muốn dòng đó thật đậm
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-app-sans',
   display: 'swap',
 });

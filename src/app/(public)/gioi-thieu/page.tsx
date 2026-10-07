@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { PageHeader } from '@/components/PageHeader';
-import { SITE_ADDRESS, SITE_NAME } from '@/config/site';
+import { SITE_NAME } from '@/config/site';
 import { listCategories, listProductsByCategory } from '@/data/catalog';
 import { Breadcrumbs } from '@/features/catalog/Breadcrumbs';
 import { OrderSteps } from '@/features/shell/OrderSteps';
@@ -9,7 +9,7 @@ import { pageMetadata } from '@/features/seo/metadata';
 
 export const metadata = pageMetadata({
   title: 'Giới thiệu',
-  description: `Giới thiệu ${SITE_NAME} tại ${SITE_ADDRESS}: ba dòng trà đóng gói sẵn gồm trà túi lọc, trà rời, trà hòa tan và cách đặt hàng qua Facebook page.`,
+  description: `Giới thiệu ${SITE_NAME}: ba dòng trà đóng gói sẵn gồm trà túi lọc, trà rời, trà hòa tan và cách đặt hàng qua Facebook page.`,
   path: '/gioi-thieu',
 });
 
@@ -20,7 +20,7 @@ export default function AboutPage() {
       <div className="grid items-center gap-8 md:grid-cols-2">
         <PageHeader
           title={`Về ${SITE_NAME}`}
-          lead={`${SITE_NAME} là thương hiệu trà đóng gói sẵn, có mặt tại ${SITE_ADDRESS}. Website này giới thiệu các gói trà của ${SITE_NAME} kèm quy cách và giá, để bạn chọn và đặt hàng thuận tiện.`}
+          lead={`${SITE_NAME} là thương hiệu trà đóng gói sẵn. Website này giới thiệu các gói trà của ${SITE_NAME} kèm quy cách và giá, để bạn chọn và đặt hàng thuận tiện.`}
         >
           <Breadcrumbs items={[{ href: '/', label: 'Trang chủ' }, { label: 'Giới thiệu' }]} />
         </PageHeader>

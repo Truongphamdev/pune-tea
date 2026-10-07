@@ -10,9 +10,6 @@ export const SITE_NAME = 'Puni Tea';
 /** Một câu giới thiệu ngắn, dùng ở chân trang. */
 export const SITE_TAGLINE = 'Trà túi lọc, trà rời và trà hòa tan đóng gói sẵn của Puni Tea.';
 
-/** Địa chỉ — đọc từ tên page "Puni Tea | Biên Hòa" (BA FR-71). Không bịa số nhà. */
-export const SITE_ADDRESS = 'Biên Hòa, Đồng Nai';
-
 /** Link page khách đã xác nhận (BA §7.6, 06/10/2026). */
 export const DEFAULT_FACEBOOK_PAGE_URL =
   'https://www.facebook.com/share/19fniaMu8F/?mibextid=wwXIfr';

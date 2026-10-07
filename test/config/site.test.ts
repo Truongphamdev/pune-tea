@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_FACEBOOK_PAGE_URL,
   NAV_LINKS,
-  SITE_ADDRESS,
   SITE_NAME,
   facebookPageUrl,
   defaultSiteUrl,
@@ -14,9 +13,8 @@ afterEach(() => {
 });
 
 describe('thông tin shop', () => {
-  it('tên shop và địa chỉ theo BA FR-71', () => {
+  it('tên shop theo BA FR-71', () => {
     expect(SITE_NAME).toBe('Puni Tea');
-    expect(SITE_ADDRESS).toBe('Biên Hòa, Đồng Nai');
   });
 
   it('menu đúng thứ tự FR-01 và trỏ đúng route §6', () => {

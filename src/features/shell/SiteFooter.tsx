@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { SITE_ADDRESS, SITE_NAME, SITE_TAGLINE, type NavLink } from '@/config/site';
+import { SITE_NAME, SITE_TAGLINE, type NavLink } from '@/config/site';
 import { BrandLockup } from './BrandMark';
 import { FacebookIcon } from './SocialIcons';
 
@@ -66,12 +66,11 @@ function FooterColumn({ title, links }: { title: string; links: readonly NavLink
   );
 }
 
-/** Không có số điện thoại/email: khách chưa cung cấp, và BA FR-71 cấm bịa. */
+/** Không có địa chỉ, số điện thoại hay email: khách yêu cầu chỉ để tên thương hiệu và Facebook (FR-71). */
 function FooterContact({ facebookUrl }: { facebookUrl: string }) {
   return (
     <div className="flex flex-col gap-3">
       <FooterHeading>Liên hệ</FooterHeading>
-      <address className="text-sm text-white/80 not-italic">{SITE_ADDRESS}</address>
       <a
         href={facebookUrl}
         target="_blank"

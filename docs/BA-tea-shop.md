@@ -364,8 +364,8 @@ Vẫn **không** có thanh toán: đơn lưu lại chỉ để khách xem lịch
 ### 7.8. Trang tĩnh
 
 - **FR-70** Giới thiệu: Puni Tea là ai, 3 dòng sản phẩm, cam kết — tuân BR-01.
-- **FR-71** Liên hệ: địa chỉ "Biên Hòa, Đồng Nai" [ẢNH — tên page "Puni Tea | Biên Hòa"], link
-  Facebook page, hướng dẫn đặt hàng 3 bước. Không hiển thị số điện thoại/email bịa.
+- **FR-71** Liên hệ: link Facebook page và hướng dẫn đặt hàng 3 bước. Không hiển thị địa chỉ, số
+  điện thoại hay email (07/10/2026: khách yêu cầu xóa "Biên Hòa, Đồng Nai" ở mọi nơi, chỉ để "Puni Tea").
 
 ## 8. Yêu cầu SEO
 

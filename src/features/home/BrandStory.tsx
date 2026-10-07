@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { SITE_ADDRESS, SITE_NAME } from '@/config/site';
+import { SITE_NAME } from '@/config/site';
 import { SectionHeading } from './SectionHeading';
 
 /** Khối câu chuyện thương hiệu trên trang chủ (FR-13): chữ + ảnh, dẫn sang trang Giới thiệu. */
@@ -18,7 +18,7 @@ export function BrandStory() {
           />
         </div>
         <div className="flex flex-col items-start gap-4">
-          <SectionHeading id="brand-story" eyebrow={SITE_ADDRESS} title={`Về ${SITE_NAME}`} />
+          <SectionHeading id="brand-story" eyebrow="Thương hiệu" title={`Về ${SITE_NAME}`} />
           <p className="leading-relaxed">
             {SITE_NAME} mang đến ba dòng trà đóng gói sẵn: trà túi lọc cho từng ly gọn gàng, trà rời
             cho ấm trà và quầy pha chế, trà hòa tan cho những lúc cần nhanh.
