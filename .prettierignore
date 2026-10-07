@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.next/
+.next-*/
+coverage/
+playwright-report/
+test-results/
+storage-local/
+pnpm-lock.yaml
+*.min.js
+specs/
+docs/
+.claude/
+_workspace/
+storage/

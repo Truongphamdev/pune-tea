@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-e2e/
+build/
+out/
+.next/
+.next-e2e/
+.next-*/
+*.tsbuildinfo
+
+# Test & coverage
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Biến môi trường — KHÔNG BAO GIỜ commit secret (Hiến pháp)
+.env
+.env.*
+!.env.example
+
+# Dữ liệu runtime cục bộ
+storage-local/
+# File database SQLite (tài khoản, đơn hàng)
+storage/
+
+# Log
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Sản phẩm trung gian của harness (báo cáo worker/reviewer)
+_workspace/
+_workspace_*/

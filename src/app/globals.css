@@ -1,0 +1,221 @@
+@import 'tailwindcss';
+
+/*
+ * TailwindCSS 4 cấu hình theo hướng CSS-first: theme khai bằng @theme ngay tại đây.
+ *
+ * ═══ HỆ MÀU (BA §9 — tham chiếu cozy.vn, chỉ giao diện sáng) ═══
+ *
+ * - `brand`: thang xanh lá quanh #0C5E30 (= brand-700) — header, footer, tiêu đề, nút chính.
+ * - `gold`: thang vàng quanh #FEBF2D (= gold-400) — điểm nhấn, nút kêu gọi.
+ * - Nền trắng và kem rất nhạt, chữ #2B2B2B.
+ *
+ * Nền và chữ đi qua biến ngữ nghĩa (`--canvas`, `--ink`, …) để mỗi màu chỉ khai MỘT chỗ.
+ *
+ * Tỉ lệ tương phản đã tính theo công thức WCAG, không ước lượng bằng mắt:
+ *   trắng   trên brand-700 #0C5E30   7.90:1  → chữ trắng trên header/footer/nút xanh
+ *   trắng   trên brand-600 #146F3D   6.23:1  → trạng thái hover của nút xanh
+ *   brand-700 trên kem #FBF8F1       7.44:1  → liên kết, chữ nhấn trên nền trang
+ *   ink #2B2B2B trên gold-400        8.57:1  → nút vàng BẮT BUỘC chữ tối
+ *   trắng   trên gold-400 #FEBF2D    1.65:1  → KHÔNG dùng (trượt AA rất xa)
+ *   gold-400 trên brand-700          4.78:1  → chữ vàng nhỏ trên nền xanh vẫn đạt AA
+ *   muted #5C5852 trên kem           6.66:1
+ */
+
+@theme {
+  /* Hai họ chữ, đều có bộ dấu tiếng Việt đầy đủ: Lora (có chân, ấm) cho tiêu đề, Be Vietnam
+     Pro cho nội dung. Font thiếu dấu sẽ rơi về font hệ thống đúng ở những chữ có dấu. */
+  --font-sans: var(--font-app-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-app-display), Georgia, ui-serif, serif;
+
+  /* Xanh lá chè — chủ đạo */
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d5eddd;
+  --color-brand-200: #aedabe;
+  --color-brand-300: #7dc198;
+  --color-brand-400: #4aa270;
+  --color-brand-500: #23834f;
+  --color-brand-600: #146f3d;
+  --color-brand-700: #0c5e30;
+  --color-brand-800: #0a4a27;
+  --color-brand-900: #08381e;
+
+  /* Vàng — điểm nhấn; chữ đặt trên nền vàng luôn là chữ tối */
+  --color-gold-50: #fff9e8;
+  --color-gold-100: #fff0c2;
+  --color-gold-200: #ffe38a;
+  --color-gold-300: #fed45a;
+  --color-gold-400: #febf2d;
+  --color-gold-500: #e9a80f;
+  --color-gold-600: #c2870a;
+  --color-gold-700: #94650b;
+
+  /* Màu ngữ nghĩa */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  /* Bo góc mềm: càng vào trong càng nhỏ, để góc trong không "phình" hơn góc ngoài */
+  --radius-card: 1rem;
+  --radius-frame: 1.5rem;
+
+  /* Đổ bóng nhuốm xanh rất nhẹ thay vì đen thuần */
+  --shadow-lift: 0 1px 2px rgb(8 56 30 / 0.06), 0 8px 24px -8px rgb(8 56 30 / 0.14);
+  --shadow-lift-lg: 0 2px 4px rgb(8 56 30 / 0.06), 0 24px 48px -16px rgb(8 56 30 / 0.2);
+}
+
+:root {
+  color-scheme: light;
+
+  --canvas: #fbf8f1;
+  --surface: #ffffff;
+  --raised: #f4f0e6;
+  --ink: #2b2b2b;
+  --muted: #5c5852;
+  --line: #e6e0d2;
+  --accent: #0c5e30;
+  --accent-soft: #eef7f1;
+}
+
+html {
+  scroll-behavior: smooth;
+  /*
+   * Thanh đầu trang dính cao ~4rem. Không có khoảng đệm này thì khi lùi bằng Shift+Tab (hoặc
+   * nhảy tới một neo), phần tử được focus cuộn vào đúng mép trên và nằm khuất sau thanh đầu
+   * trang — người dùng bàn phím không thấy mình đang ở đâu.
+   */
+  scroll-padding-top: 5.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Người đã tắt hiệu ứng chuyển động thì tắt thật, không giảm nhẹ */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+/*
+ * Lớp hạt mịn phủ toàn trang.
+ *
+ * Nền phẳng tuyệt đối trông như bản dựng chưa xong. Một lớp nhiễu rất nhẹ làm bề mặt có
+ * "chất" mà không ai nhận ra là có nó — chỉ nhận ra khi bỏ đi.
+ *
+ * `pointer-events: none` là bắt buộc: thiếu nó thì lớp phủ nuốt mọi cú nhấp chuột của cả
+ * trang, và triệu chứng là "web bị đơ" chứ không phải "có lớp phủ sai".
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * Tiêu đề dùng font tiêu đề. Đặt trong `@layer base` để lớp tiện ích (`font-sans`…) ghi đè
+ * được — luật ngoài layer luôn thắng utility của Tailwind 4.
+ */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* Con số tiền phải thẳng cột giữa các thẻ sản phẩm — chữ số tỉ lệ làm giá nhảy múa */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Vòng focus dùng chung.
+ *
+ * `:focus-visible` chứ không phải `:focus` — người dùng chuột không bị vòng sáng nhảy ra sau
+ * mỗi cú nhấp, còn người dùng bàn phím vẫn luôn thấy mình đang ở đâu.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+/* Liên kết bỏ qua điều hướng — người dùng bàn phím không phải Tab qua cả menu mỗi trang */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 60;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+/*
+ * Tailwind 4 đổi mặc định: nút không còn `cursor: pointer` (theo trình duyệt thuần).
+ * Nhưng cả giao diện này đã được thiết kế theo quy ước web phổ thông — cái gì bấm được thì
+ * con trỏ thành bàn tay. Trả lại mặc định đó ở một chỗ duy nhất, thay vì rắc `cursor-pointer`
+ * lên từng nút và sớm muộn sẽ sót.
+ *
+ * `:not(:disabled)` để nút bị khóa giữ con trỏ thường (hoặc `not-allowed` nếu component tự
+ * khai) — bàn tay trên nút không bấm được là một lời hứa sai. Thẻ `<a>` có `href` thì trình
+ * duyệt tự cho bàn tay sẵn, không cần kể ở đây.
+ */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  select:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+}
+
+/* Toast trượt nhẹ từ dưới lên — khối reduced-motion phía trên đã tự vô hiệu nó khi cần */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.toast-in {
+  animation: toast-in 0.2s ease-out;
+}
