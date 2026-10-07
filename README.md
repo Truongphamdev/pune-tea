@@ -95,7 +95,14 @@ Vercel chạy serverless nên không giữ được file SQLite; database khi de
    | `NEXT_PUBLIC_SITE_URL`          | `https://<tên-dự-án>.vercel.app` (hoặc tên miền riêng) — bắt buộc đúng, vì canonical, sitemap và cờ `Secure` của cookie đăng nhập lấy từ đây |
    | `NEXT_PUBLIC_FACEBOOK_PAGE_URL` | để trống nếu dùng page mặc định                                                                                                              |
 
-4. **Deploy**. Sau khi lên, thử đăng ký một tài khoản rồi xem bảng `users` trong Turso để chắc
+4. **Deploy**. Sau đó làm nóng bộ đệm ảnh một lần, để khách đầu tiên không phải chờ Vercel nén
+   ảnh (hơn một giây mỗi ảnh ở lần xem đầu):
+
+   ```bash
+   pnpm warm-images https://<tên-dự-án>.vercel.app
+   ```
+
+5. **Kiểm tra**. Sau khi lên, thử đăng ký một tài khoản rồi xem bảng `users` trong Turso để chắc
    database đã nối đúng.
 
 Lưu ý: giới hạn tần suất (đăng nhập sai, đăng ký, đặt đơn) đếm trong bộ nhớ của từng tiến trình;

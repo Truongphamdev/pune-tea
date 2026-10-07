@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "format": "prettier --write .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "warm-images": "node scripts/warm-images.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
